@@ -1,5 +1,3 @@
 package framework
 
-func ControllerMethod(c *Context) {
-
-}
+type ControllerHandler func(c *Context) error
