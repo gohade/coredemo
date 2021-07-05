@@ -1,7 +1,10 @@
 package main
 
-import "coredemo/framework"
+import (
+	"coredemo/framework"
+	"time"
+)
 
 func registerRouter(core *framework.Core) {
-	core.Get("/foo", FooControllerHandler)
+	core.Get("foo", framework.TimeoutHandler(FooControllerHandler, time.Second*1))
 }

@@ -10,6 +10,7 @@ func main() {
 	registerRouter(core)
 	server := &http.Server{
 		Handler: core,
+		Addr:    ":8888",
 	}
 	server.ListenAndServe()
 }

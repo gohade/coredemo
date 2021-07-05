@@ -39,10 +39,6 @@ func (ctx *Context) GetResponse() http.ResponseWriter {
 	return ctx.responseWriter
 }
 
-func (ctx *Context) BaseContext() context.Context {
-	return ctx.ctx
-}
-
 func (ctx *Context) SetTimeout(d time.Duration) {
 	newCtx, cancel := context.WithTimeout(ctx.ctx, d)
 	ctx.ctx = newCtx
@@ -54,6 +50,10 @@ func (ctx *Context) SetHandler(handler ControllerHandler) {
 }
 
 // #endregion
+
+func (ctx *Context) BaseContext() context.Context {
+	return ctx.request.Context()
+}
 
 // #region implement context.Context
 func (ctx *Context) Deadline() (deadline time.Time, ok bool) {
@@ -164,7 +164,7 @@ func (ctx *Context) FormAll() map[string][]string {
 
 // #region application/json post
 
-func (ctx *Context) JsonAll(obj interface{}) error {
+func (ctx *Context) BindJson(obj interface{}) error {
 	if ctx.request != nil {
 		body, err := ioutil.ReadAll(ctx.request.Body)
 		if err != nil {
@@ -196,6 +196,14 @@ func (ctx *Context) Json(status int, obj interface{}) error {
 	}
 	ctx.responseWriter.WriteHeader(200)
 	ctx.responseWriter.Write(byt)
+	return nil
+}
+
+func (ctx *Context) HTML(status int, obj interface{}, template string) error {
+	return nil
+}
+
+func (ctx *Context) Text(status int, obj string) error {
 	return nil
 }
 

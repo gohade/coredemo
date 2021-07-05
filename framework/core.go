@@ -7,53 +7,37 @@ import (
 
 // Core represent core struct
 type Core struct {
+	router map[string]ControllerHandler
 }
 
 func NewCore() *Core {
-	return &Core{}
+	return &Core{router: map[string]ControllerHandler{}}
 }
 
 func (c *Core) Get(url string, handler ControllerHandler) {
-	panic("not implement")
+	c.router[url] = handler
 }
 
 func (c *Core) Post(url string, handler ControllerHandler) {
-	panic("not implement")
+	c.router[url] = handler
 }
 
 func (c *Core) FindRouteByRequest(request *http.Request) ControllerHandler {
-	return nil
+	return c.router["foo"]
 }
 
 func (c *Core) ServeHTTP(response http.ResponseWriter, request *http.Request) {
+	log.Println("core.serveHTTP")
 	ctx := NewContext(request, response)
 
 	router := c.FindRouteByRequest(request)
 	if router == nil {
 		return
 	}
+	log.Println("core.router")
 
 	ctx.SetHandler(router)
 
-	ctx.ProcessChan = make(chan string)
+	router(ctx)
 
-	go func(ctx *Context) error {
-		err := router(ctx)
-		if err != nil {
-			ctx.ProcessChan <- err.Error()
-			return err
-		}
-
-		ctx.ProcessChan <- ""
-		return nil
-	}(ctx)
-
-	select {
-	case err := <-ctx.ProcessChan:
-		if err != "" {
-			response.Write([]byte(err))
-		}
-	case <-ctx.BaseContext().Done():
-		log.Println("ctx timeout")
-	}
 }

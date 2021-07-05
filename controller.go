@@ -6,8 +6,10 @@ import (
 )
 
 func FooControllerHandler(ctx *framework.Context) error {
-	ctx.SetTimeout(time.Millisecond * 10)
-	panic("not implement")
+	time.Sleep(10 * time.Second)
+	return ctx.Json(200, map[string]interface{}{
+		"code": 0,
+	})
 }
 
 // func Foo(request *http.Request, response http.ResponseWriter) {
@@ -49,4 +51,14 @@ func FooControllerHandler(ctx *framework.Context) error {
 // 	fooInt := ctx.FormInt("foo", 10)
 // 	obj["data"] = fooInt
 // 	return ctx.Json(http.StatusOK, obj)
+// }
+
+// func Foo3(ctx *framework.Context) error {
+// 	rdb := redis.NewClient(&redis.Options{
+// 		Addr:     "localhost:6379",
+// 		Password: "", // no password set
+// 		DB:       0,  // use default DB
+// 	})
+
+// 	return rdb.Set(ctx, "key", "value", 0).Err()
 // }
