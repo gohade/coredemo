@@ -16,9 +16,7 @@ type Context struct {
 	responseWriter http.ResponseWriter
 	ctx            context.Context
 	handler        ControllerHandler
-	cancelFunc     context.CancelFunc
-
-	ProcessChan chan string
+	hasTimeout     bool
 }
 
 func NewContext(r *http.Request, w http.ResponseWriter) *Context {
@@ -39,14 +37,16 @@ func (ctx *Context) GetResponse() http.ResponseWriter {
 	return ctx.responseWriter
 }
 
-func (ctx *Context) SetTimeout(d time.Duration) {
-	newCtx, cancel := context.WithTimeout(ctx.ctx, d)
-	ctx.ctx = newCtx
-	ctx.cancelFunc = cancel
-}
-
 func (ctx *Context) SetHandler(handler ControllerHandler) {
 	ctx.handler = handler
+}
+
+func (ctx *Context) SetTimeout() {
+	ctx.hasTimeout = true
+}
+
+func (ctx *Context) HasTimeout() bool {
+	return ctx.hasTimeout
 }
 
 // #endregion
@@ -187,6 +187,9 @@ func (ctx *Context) BindJson(obj interface{}) error {
 // #region response
 
 func (ctx *Context) Json(status int, obj interface{}) error {
+	if ctx.HasTimeout() {
+		return nil
+	}
 	ctx.responseWriter.Header().Set("Content-Type", "application/json")
 	ctx.responseWriter.WriteHeader(status)
 	byt, err := json.Marshal(obj)
@@ -194,7 +197,6 @@ func (ctx *Context) Json(status int, obj interface{}) error {
 		ctx.responseWriter.WriteHeader(500)
 		return err
 	}
-	ctx.responseWriter.WriteHeader(200)
 	ctx.responseWriter.Write(byt)
 	return nil
 }
