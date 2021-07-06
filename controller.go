@@ -5,7 +5,6 @@ import (
 	"coredemo/framework"
 	"fmt"
 	"log"
-	"sync"
 	"time"
 )
 
@@ -16,7 +15,7 @@ func FooControllerHandler(c *framework.Context) error {
 	durationCtx, cancel := context.WithTimeout(c.BaseContext(), time.Duration(1*time.Second))
 	defer cancel()
 
-	mu := sync.Mutex{}
+	// mu := sync.Mutex{}
 	go func() {
 		defer func() {
 			if p := recover(); p != nil {
@@ -25,24 +24,23 @@ func FooControllerHandler(c *framework.Context) error {
 		}()
 		// Do real action
 		time.Sleep(10 * time.Second)
+		c.Json(200, "ok")
 
 		finish <- struct{}{}
 	}()
 	select {
 	case p := <-panicChan:
-		mu.Lock()
-		defer mu.Unlock()
+		c.WriterMux().Lock()
+		defer c.WriterMux().Unlock()
 		log.Println(p)
 		c.Json(500, "panic")
 	case <-finish:
-		mu.Lock()
-		defer mu.Unlock()
 		fmt.Println("finish")
 	case <-durationCtx.Done():
-		mu.Lock()
-		defer mu.Unlock()
+		c.WriterMux().Lock()
+		defer c.WriterMux().Unlock()
 		c.Json(500, "time out")
-		c.SetTimeout()
+		c.SetHasTimeout()
 	}
 	return nil
 }

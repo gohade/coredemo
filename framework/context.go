@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -16,7 +17,11 @@ type Context struct {
 	responseWriter http.ResponseWriter
 	ctx            context.Context
 	handler        ControllerHandler
-	hasTimeout     bool
+
+	// 是否超时标记位
+	hasTimeout bool
+	// 写保护机制
+	writerMux *sync.Mutex
 }
 
 func NewContext(r *http.Request, w http.ResponseWriter) *Context {
@@ -24,10 +29,15 @@ func NewContext(r *http.Request, w http.ResponseWriter) *Context {
 		request:        r,
 		responseWriter: w,
 		ctx:            r.Context(),
+		writerMux:      &sync.Mutex{},
 	}
 }
 
 // #region base function
+
+func (ctx *Context) WriterMux() *sync.Mutex {
+	return ctx.writerMux
+}
 
 func (ctx *Context) GetRequest() *http.Request {
 	return ctx.request
@@ -41,7 +51,7 @@ func (ctx *Context) SetHandler(handler ControllerHandler) {
 	ctx.handler = handler
 }
 
-func (ctx *Context) SetTimeout() {
+func (ctx *Context) SetHasTimeout() {
 	ctx.hasTimeout = true
 }
 
