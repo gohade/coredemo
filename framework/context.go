@@ -16,7 +16,6 @@ type Context struct {
 	request        *http.Request
 	responseWriter http.ResponseWriter
 	ctx            context.Context
-	handler        ControllerHandler
 
 	// 是否超时标记位
 	hasTimeout bool
@@ -45,10 +44,6 @@ func (ctx *Context) GetRequest() *http.Request {
 
 func (ctx *Context) GetResponse() http.ResponseWriter {
 	return ctx.responseWriter
-}
-
-func (ctx *Context) SetHandler(handler ControllerHandler) {
-	ctx.handler = handler
 }
 
 func (ctx *Context) SetHasTimeout() {

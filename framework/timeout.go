@@ -32,7 +32,7 @@ func TimeoutHandler(fun ControllerHandler, d time.Duration) ControllerHandler {
 		case <-finish:
 			fmt.Println("finish")
 		case <-durationCtx.Done():
-			c.SetTimeout()
+			c.SetHasTimeout()
 			c.responseWriter.Write([]byte("time out"))
 		}
 		return nil
