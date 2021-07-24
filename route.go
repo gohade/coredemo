@@ -16,6 +16,6 @@ func registerRouter(core *framework.Core) {
 		subjectApi.Delete("/:id", SubjectDelController)
 		subjectApi.Put("/:id", SubjectUpdateController)
 		subjectApi.Get("/:id", SubjectGetController)
-		subjectApi.Get("/list", SubjectListController)
+		subjectApi.Get("/list/all", SubjectListController)
 	}
 }
