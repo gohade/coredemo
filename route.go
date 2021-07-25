@@ -17,5 +17,10 @@ func registerRouter(core *framework.Core) {
 		subjectApi.Put("/:id", SubjectUpdateController)
 		subjectApi.Get("/:id", SubjectGetController)
 		subjectApi.Get("/list/all", SubjectListController)
+
+		subjectInnerApi := subjectApi.Group("/info")
+		{
+			subjectInnerApi.Get("/name", SubjectNameController)
+		}
 	}
 }
