@@ -36,46 +36,51 @@ func isWildSegment(segment string) bool {
 	return strings.HasPrefix(segment, ":")
 }
 
-// 过滤所有的子节点, 返回nil或者len(*node) > 0
+// 过滤下一层满足segment规则的子节点
 func (n *node) filterChildNodes(segment string) []*node {
 	if len(n.childs) == 0 {
 		return nil
 	}
 
+	// 如果segment是通配符，则所有下一层子节点都满足需求
 	if isWildSegment(segment) {
 		return n.childs
 	}
 
 	nodes := make([]*node, 0, len(n.childs))
+	// 过滤所有的下一层子节点
 	for _, cnode := range n.childs {
 		if isWildSegment(cnode.segment) {
+			// 如果下一层子节点有通配符，则满足需求
 			nodes = append(nodes, cnode)
 		} else if cnode.segment == segment {
+			// 如果下一层子节点没有通配符，但是文本完全匹配，则满足需求
 			nodes = append(nodes, cnode)
 		}
 	}
-	if len(nodes) == 0 {
-		return nil
-	}
+
 	return nodes
 }
 
-// 判断路由是否已经存在
+// 判断路由是否已经在节点的所有子节点树中存在了
 func (n *node) matchNode(uri string) *node {
+	// 使用分隔符将uri切割为两个部分
 	segments := strings.SplitN(uri, "/", 2)
+	// 第一个部分用于匹配下一层子节点
 	segment := segments[0]
 	if !isWildSegment(segment) {
 		segment = strings.ToUpper(segment)
 	}
+	// 匹配符合的下一层子节点
 	cnodes := n.filterChildNodes(segment)
-	// 如果当前子节点没有一个符合，那么说明这个uri一定是之前不存在
+	// 如果当前子节点没有一个符合，那么说明这个uri一定是之前不存在, 直接返回nil
 	if cnodes == nil || len(cnodes) == 0 {
 		return nil
 	}
 
-	// 如果只有一个segment，则是最后一个标记了
+	// 如果只有一个segment，则是最后一个标记
 	if len(segments) == 1 {
-		// 如果segment已经是最后一个节点，判断这些cnode是否有最后一个节点
+		// 如果segment已经是最后一个节点，判断这些cnode是否有isLast标志
 		for _, tn := range cnodes {
 			if tn.isLast {
 				return tn
@@ -86,7 +91,7 @@ func (n *node) matchNode(uri string) *node {
 		return nil
 	}
 
-	// 如果有2个segment, 递归
+	// 如果有2个segment, 递归每个子节点继续进行查找
 	for _, tn := range cnodes {
 		tnMatch := tn.matchNode(segments[1])
 		if tnMatch != nil {
@@ -108,7 +113,7 @@ func (n *node) matchNode(uri string) *node {
 func (tree *Tree) AddRouter(uri string, handler ControllerHandler) error {
 	n := tree.root
 	if n.matchNode(uri) != nil {
-		return errors.New("route exist")
+		return errors.New("route exist: " + uri)
 	}
 
 	segments := strings.Split(uri, "/")
