@@ -34,7 +34,7 @@ func NewContext(r *http.Request, w http.ResponseWriter) *Context {
 		responseWriter: w,
 		ctx:            r.Context(),
 		writerMux:      &sync.Mutex{},
-		index:          0,
+		index:          -1,
 	}
 }
 

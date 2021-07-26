@@ -20,10 +20,11 @@ func NewCore() *Core {
 	router["POST"] = NewTree()
 	router["PUT"] = NewTree()
 	router["DELETE"] = NewTree()
-	return &Core{router: router}
+	core := &Core{router: router}
+	return core
 }
 
-// 实现Use方法
+// 注册中间件
 func (c *Core) Use(middlewares ...ControllerHandler) {
 	c.middlewares = middlewares
 }
@@ -32,6 +33,7 @@ func (c *Core) Use(middlewares ...ControllerHandler) {
 
 // 匹配GET 方法, 增加路由规则
 func (c *Core) Get(url string, handlers ...ControllerHandler) {
+	// 将core的middleware 和 handlers结合起来
 	allHandlers := append(c.middlewares, handlers...)
 	if err := c.router["GET"].AddRouter(url, allHandlers); err != nil {
 		log.Fatal("add router error: ", err)

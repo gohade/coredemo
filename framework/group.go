@@ -87,7 +87,7 @@ func (g *Group) Group(uri string) IGroup {
 	return cgroup
 }
 
-// 实现use方法
+// 注册中间件
 func (g *Group) Use(middlewares ...ControllerHandler) {
 	g.middlewares = middlewares
 }
