@@ -5,6 +5,7 @@ import (
 )
 
 func UserLoginController(c *framework.Context) error {
-	c.Json(200, "ok, UserLoginController")
+	foo, _ := c.QueryString("foo", "def")
+	c.SetOkStatus().Json("ok, UserLoginController: " + foo)
 	return nil
 }
