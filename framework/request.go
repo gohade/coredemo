@@ -1,8 +1,17 @@
 package framework
 
 import (
+	"bytes"
+	"encoding/json"
+	"encoding/xml"
+	"errors"
+	"io/ioutil"
 	"mime/multipart"
+
+	"github.com/spf13/cast"
 )
+
+const defaultMultipartMemory = 32 << 20 // 32 MB
 
 // 代表请求包含的方法
 type IRequest interface {
@@ -59,86 +68,93 @@ type IRequest interface {
 	Header(key string) (string, bool)
 
 	// cookie
-	Cookes() map[string]string
+	Cookies() map[string]string
 	Cookie(key string) (string, bool)
 }
 
-// // #region query url
-// func (ctx *Context) QueryInt(key string, def int) (int, bool) {
-// 	params := ctx.QueryAll()
-// 	if vals, ok := params[key]; ok {
-// 		len := len(vals)
-// 		if len > 0 {
-// 			intval, err := strconv.Atoi(vals[len-1])
-// 			if err != nil {
-// 				return def, false
-// 			}
-// 			return intval, true
-// 		}
-// 	}
-// 	return def, false
-// }
-
-// func (ctx *Context) QueryString(key string, def string) string {
-// 	params := ctx.QueryAll()
-// 	if vals, ok := params[key]; ok {
-// 		len := len(vals)
-// 		if len > 0 {
-// 			return vals[len-1]
-// 		}
-// 	}
-// 	return def
-// }
-
-// func (ctx *Context) QueryArray(key string, def []string) []string {
-// 	params := ctx.QueryAll()
-// 	if vals, ok := params[key]; ok {
-// 		return vals
-// 	}
-// 	return def
-// }
-
-// func (ctx *Context) QueryAll() map[string][]string {
-// 	if ctx.request != nil {
-// 		return map[string][]string(ctx.request.URL.Query())
-// 	}
-// 	return map[string][]string{}
-// }
-
-// // #endregion
+func (ctx *Context) QueryAll() map[string][]string {
+	if ctx.request != nil {
+		return map[string][]string(ctx.request.URL.Query())
+	}
+	return map[string][]string{}
+}
 
 // 请求地址url中带的参数
 // 形如: foo.com?a=1&b=bar&c[]=bar
 func (ctx *Context) QueryInt(key string, def int) (int, bool) {
-	panic("not implemented") // TODO: Implement
+	params := ctx.QueryAll()
+	if vals, ok := params[key]; ok {
+		if len(vals) > 0 {
+			return cast.ToInt(vals[0]), true
+		}
+	}
+	return def, false
 }
 
 func (ctx *Context) QueryInt64(key string, def int64) (int64, bool) {
-	panic("not implemented") // TODO: Implement
+	params := ctx.QueryAll()
+	if vals, ok := params[key]; ok {
+		if len(vals) > 0 {
+			return cast.ToInt64(vals[0]), true
+		}
+	}
+	return def, false
 }
 
 func (ctx *Context) QueryFloat64(key string, def float64) (float64, bool) {
-	panic("not implemented") // TODO: Implement
+	params := ctx.QueryAll()
+	if vals, ok := params[key]; ok {
+		if len(vals) > 0 {
+			return cast.ToFloat64(vals[0]), true
+		}
+	}
+	return def, false
 }
 
 func (ctx *Context) QueryFloat32(key string, def float32) (float32, bool) {
-	panic("not implemented") // TODO: Implement
+	params := ctx.QueryAll()
+	if vals, ok := params[key]; ok {
+		if len(vals) > 0 {
+			return cast.ToFloat32(vals[0]), true
+		}
+	}
+	return def, false
 }
 
 func (ctx *Context) QueryBool(key string, def bool) (bool, bool) {
-	panic("not implemented") // TODO: Implement
+	params := ctx.QueryAll()
+	if vals, ok := params[key]; ok {
+		if len(vals) > 0 {
+			return cast.ToBool(vals[0]), true
+		}
+	}
+	return def, false
 }
 
 func (ctx *Context) QueryString(key string, def string) (string, bool) {
-	panic("not implemented") // TODO: Implement
+	params := ctx.QueryAll()
+	if vals, ok := params[key]; ok {
+		if len(vals) > 0 {
+			return vals[0], true
+		}
+	}
+	return def, false
 }
 
 func (ctx *Context) QueryStringSlice(key string, def []string) ([]string, bool) {
-	panic("not implemented") // TODO: Implement
+	params := ctx.QueryAll()
+	if vals, ok := params[key]; ok {
+		return vals, true
+	}
+	return def, false
 }
 
 func (ctx *Context) Query(key string) interface{} {
-	panic("not implemented") // TODO: Implement
+	params := ctx.QueryAll()
+	if vals, ok := params[key]; ok {
+		return vals[0]
+	}
+	return nil
 }
 
 // 路由匹配中带的参数
@@ -175,75 +191,188 @@ func (ctx *Context) Param(key string) interface{} {
 	panic("not implemented") // TODO: Implement
 }
 
+func (ctx *Context) FormAll() map[string][]string {
+	if ctx.request != nil {
+		ctx.request.ParseForm()
+		return map[string][]string(ctx.request.PostForm)
+	}
+	return map[string][]string{}
+}
+
 func (ctx *Context) FormInt64(key string, def int64) (int64, bool) {
-	panic("not implemented") // TODO: Implement
+	params := ctx.FormAll()
+	if vals, ok := params[key]; ok {
+		if len(vals) > 0 {
+			return cast.ToInt64(vals[0]), true
+		}
+	}
+	return def, false
 }
 
 func (ctx *Context) FormFloat64(key string, def float64) (float64, bool) {
-	panic("not implemented") // TODO: Implement
+	params := ctx.FormAll()
+	if vals, ok := params[key]; ok {
+		if len(vals) > 0 {
+			return cast.ToFloat64(vals[0]), true
+		}
+	}
+	return def, false
 }
 
 func (ctx *Context) FormFloat32(key string, def float32) (float32, bool) {
-	panic("not implemented") // TODO: Implement
+	params := ctx.FormAll()
+	if vals, ok := params[key]; ok {
+		if len(vals) > 0 {
+			return cast.ToFloat32(vals[0]), true
+		}
+	}
+	return def, false
 }
 
 func (ctx *Context) FormBool(key string, def bool) (bool, bool) {
-	panic("not implemented") // TODO: Implement
+	params := ctx.FormAll()
+	if vals, ok := params[key]; ok {
+		if len(vals) > 0 {
+			return cast.ToBool(vals[0]), true
+		}
+	}
+	return def, false
 }
 
 func (ctx *Context) FormStringSlice(key string, def []string) ([]string, bool) {
-	panic("not implemented") // TODO: Implement
+	params := ctx.FormAll()
+	if vals, ok := params[key]; ok {
+		return vals, true
+	}
+	return def, false
 }
 
 func (ctx *Context) FormFile(key string) (*multipart.FileHeader, error) {
-	panic("not implemented") // TODO: Implement
+	if ctx.request.MultipartForm == nil {
+		if err := ctx.request.ParseMultipartForm(defaultMultipartMemory); err != nil {
+			return nil, err
+		}
+	}
+	f, fh, err := ctx.request.FormFile(key)
+	if err != nil {
+		return nil, err
+	}
+	f.Close()
+	return fh, err
 }
 
 func (ctx *Context) Form(key string) interface{} {
-	panic("not implemented") // TODO: Implement
+	params := ctx.FormAll()
+	if vals, ok := params[key]; ok {
+		if len(vals) > 0 {
+			return vals[0]
+		}
+	}
+	return nil
+}
+
+func (ctx *Context) BindJson(obj interface{}) error {
+	if ctx.request != nil {
+		body, err := ioutil.ReadAll(ctx.request.Body)
+		if err != nil {
+			return err
+		}
+		ctx.request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+
+		err = json.Unmarshal(body, obj)
+		if err != nil {
+			return err
+		}
+	} else {
+		return errors.New("ctx.request empty")
+	}
+	return nil
 }
 
 // xml body
 func (ctx *Context) BindXml(obj interface{}) error {
-	panic("not implemented") // TODO: Implement
+	if ctx.request != nil {
+		body, err := ioutil.ReadAll(ctx.request.Body)
+		if err != nil {
+			return err
+		}
+		ctx.request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+
+		err = xml.Unmarshal(body, obj)
+		if err != nil {
+			return err
+		}
+	} else {
+		return errors.New("ctx.request empty")
+	}
+	return nil
 }
 
 // 其他格式
 func (ctx *Context) GetRawData() ([]byte, error) {
-	panic("not implemented") // TODO: Implement
+	if ctx.request != nil {
+		body, err := ioutil.ReadAll(ctx.request.Body)
+		if err != nil {
+			return nil, err
+		}
+		ctx.request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+		return body, nil
+	}
+	return nil, errors.New("ctx.request empty")
 }
 
 // 基础信息
 func (ctx *Context) Uri() string {
-	panic("not implemented") // TODO: Implement
+	return ctx.request.RequestURI
 }
 
 func (ctx *Context) Method() string {
-	panic("not implemented") // TODO: Implement
+	return ctx.request.Method
 }
 
 func (ctx *Context) Host() string {
-	panic("not implemented") // TODO: Implement
+	return ctx.request.URL.Host
 }
 
 func (ctx *Context) ClientIp() string {
-	panic("not implemented") // TODO: Implement
+	r := ctx.request
+	ipAddress := r.Header.Get("X-Real-Ip")
+	if ipAddress == "" {
+		ipAddress = r.Header.Get("X-Forwarded-For")
+	}
+	if ipAddress == "" {
+		ipAddress = r.RemoteAddr
+	}
+	return ipAddress
 }
 
 // header
-func (ctx *Context) Headers() map[string]string {
-	panic("not implemented") // TODO: Implement
+func (ctx *Context) Headers() map[string][]string {
+	return map[string][]string(ctx.request.Header)
 }
 
 func (ctx *Context) Header(key string) (string, bool) {
-	panic("not implemented") // TODO: Implement
+	vals := ctx.request.Header.Values(key)
+	if vals == nil || len(vals) <= 0 {
+		return "", false
+	}
+	return vals[0], true
 }
 
 // cookie
-func (ctx *Context) Cookes() map[string]string {
-	panic("not implemented") // TODO: Implement
+func (ctx *Context) Cookies() map[string]string {
+	cookies := ctx.request.Cookies()
+	ret := map[string]string{}
+	for _, cookie := range cookies {
+		ret[cookie.Name] = cookie.Value
+	}
+	return ret
 }
 
 func (ctx *Context) Cookie(key string) (string, bool) {
-	panic("not implemented") // TODO: Implement
+	cookies := ctx.Cookies()
+	if val, ok := cookies[key]; ok {
+		return val, true
+	}
+	return "", false
 }

@@ -164,5 +164,6 @@ func (tree *Tree) FindHandler(uri string) []ControllerHandler {
 	if matchNode == nil {
 		return nil
 	}
+
 	return matchNode.handlers
 }
