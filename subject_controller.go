@@ -1,6 +1,9 @@
 package main
 
-import "coredemo/framework"
+import (
+	"coredemo/framework"
+	"fmt"
+)
 
 func SubjectAddController(c *framework.Context) error {
 	c.Json(200, "ok, SubjectAddController")
@@ -23,7 +26,9 @@ func SubjectUpdateController(c *framework.Context) error {
 }
 
 func SubjectGetController(c *framework.Context) error {
-	c.Json(200, "ok, SubjectGetController")
+	subjectId, _ := c.ParamInt("id", 0)
+	c.Json(200, "ok, SubjectGetController:"+fmt.Sprint(subjectId))
+
 	return nil
 }
 

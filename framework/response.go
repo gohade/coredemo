@@ -1,6 +1,13 @@
 package framework
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"encoding/xml"
+	"fmt"
+	"html/template"
+	"net/http"
+	"net/url"
+)
 
 // IResponse代表返回方法
 type IResponse interface {
@@ -28,9 +35,6 @@ type IResponse interface {
 	// Cookie
 	SetCookie(key string, val string, maxAge int, path, domain string, secure, httpOnly bool) IResponse
 
-	// 基础操作
-	Abort()
-
 	// 设置状态码
 	SetStaus(code int) IResponse
 
@@ -40,72 +44,119 @@ type IResponse interface {
 
 // Jsonp输出
 func (ctx *Context) Jsonp(obj interface{}) IResponse {
-	panic("not implemented") // TODO: Implement
+	callbackFunc, _ := ctx.QueryString("callback", "callback_function")
+	ctx.SetHeader("Content-Type", "application/javascript")
+	callback := template.JSEscapeString(callbackFunc)
+
+	_, err := ctx.responseWriter.Write([]byte(callback))
+	if err != nil {
+		return ctx
+	}
+	_, err = ctx.responseWriter.Write([]byte("("))
+	if err != nil {
+		return ctx
+	}
+	_, err = ctx.responseWriter.Write([]byte("("))
+	if err != nil {
+		return ctx
+	}
+	ret, err := json.Marshal(obj)
+	if err != nil {
+		return ctx
+	}
+	_, err = ctx.responseWriter.Write(ret)
+	if err != nil {
+		return ctx
+	}
+	_, err = ctx.responseWriter.Write([]byte(")"))
+	if err != nil {
+		return ctx
+	}
+	return ctx
 }
 
 //xml输出
 func (ctx *Context) Xml(obj interface{}) IResponse {
-	panic("not implemented") // TODO: Implement
+	byt, err := xml.Marshal(obj)
+	if err != nil {
+		return ctx.SetStaus(http.StatusInternalServerError)
+	}
+	ctx.SetHeader("Content-Type", "application/html")
+	ctx.responseWriter.Write(byt)
+	return ctx
 }
 
 // html输出
-func (ctx *Context) Html(template string, obj interface{}) IResponse {
-	panic("not implemented") // TODO: Implement
+func (ctx *Context) Html(file string, obj interface{}) IResponse {
+	t, err := template.New("output").ParseFiles(file)
+	if err != nil {
+		return ctx
+	}
+
+	if err := t.Execute(ctx.responseWriter, obj); err != nil {
+		return ctx
+	}
+
+	ctx.SetHeader("Content-Type", "application/html")
+	return ctx
+}
+
+// string
+func (ctx *Context) Text(format string, values ...interface{}) IResponse {
+	out := fmt.Sprintf(format, values...)
+	ctx.SetHeader("Content-Type", "application/text")
+	ctx.responseWriter.Write([]byte(out))
+	return ctx
 }
 
 // 重定向
 func (ctx *Context) Redirect(path string) IResponse {
-	panic("not implemented") // TODO: Implement
+	http.Redirect(ctx.responseWriter, ctx.request, path, http.StatusMovedPermanently)
+	return ctx
 }
 
 // header
 func (ctx *Context) SetHeader(key string, val string) IResponse {
-	panic("not implemented") // TODO: Implement
+	ctx.responseWriter.Header().Add(key, val)
+	return ctx
 }
 
 // Cookie
 func (ctx *Context) SetCookie(key string, val string, maxAge int, path string, domain string, secure bool, httpOnly bool) IResponse {
-	panic("not implemented") // TODO: Implement
-}
-
-// 基础操作
-func (ctx *Context) Abort() {
-	panic("not implemented") // TODO: Implement
+	if path == "" {
+		path = "/"
+	}
+	http.SetCookie(ctx.responseWriter, &http.Cookie{
+		Name:     key,
+		Value:    url.QueryEscape(val),
+		MaxAge:   maxAge,
+		Path:     path,
+		Domain:   domain,
+		SameSite: 1,
+		Secure:   secure,
+		HttpOnly: httpOnly,
+	})
+	return ctx
 }
 
 // 设置状态码
 func (ctx *Context) SetStaus(code int) IResponse {
-	panic("not implemented") // TODO: Implement
+	ctx.responseWriter.WriteHeader(code)
+	return ctx
 }
 
 // 设置200状态
 func (ctx *Context) SetOkStatus() IResponse {
-	panic("not implemented") // TODO: Implement
+	ctx.responseWriter.WriteHeader(http.StatusOK)
+	return ctx
 }
 
-// #region response
-
-func (ctx *Context) Json(status int, obj interface{}) error {
-	if ctx.HasTimeout() {
-		return nil
-	}
-	ctx.responseWriter.Header().Set("Content-Type", "application/json")
-	ctx.responseWriter.WriteHeader(status)
+func (ctx *Context) Json(obj interface{}) IResponse {
 	byt, err := json.Marshal(obj)
 	if err != nil {
-		ctx.responseWriter.WriteHeader(500)
-		return err
+		return ctx.SetStaus(http.StatusInternalServerError)
 	}
+	ctx.SetHeader("Content-Type", "application/json")
 	ctx.responseWriter.Write(byt)
-	return nil
+	return ctx
 }
-
-func (ctx *Context) HTML(status int, obj interface{}, template string) error {
-	return nil
-}
-
-func (ctx *Context) Text(status int, obj string) error {
-	return nil
-}
-
-// #endregion

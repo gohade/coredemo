@@ -20,6 +20,8 @@ type Context struct {
 	// 当前请求的handler链条
 	handlers []ControllerHandler
 	index    int // 当前请求调用到调用链的哪个节点
+
+	params map[string]string // url路由匹配的参数
 }
 
 // NewContext 初始化一个Context
@@ -58,6 +60,11 @@ func (ctx *Context) HasTimeout() bool {
 // 为context设置handlers
 func (ctx *Context) SetHandlers(handlers []ControllerHandler) {
 	ctx.handlers = handlers
+}
+
+// 设置参数
+func (ctx *Context) SetParams(params map[string]string) {
+	ctx.params = params
 }
 
 // 核心函数，调用context的下一个函数

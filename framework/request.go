@@ -34,7 +34,6 @@ type IRequest interface {
 	ParamFloat32(key string, def float32) (float32, bool)
 	ParamBool(key string, def bool) (bool, bool)
 	ParamString(key string, def string) (string, bool)
-	ParamStringSlice(key string, def []string) ([]string, bool)
 	Param(key string) interface{}
 
 	// form表单中带的参数
@@ -160,35 +159,54 @@ func (ctx *Context) Query(key string) interface{} {
 // 路由匹配中带的参数
 // 形如 /book/:id
 func (ctx *Context) ParamInt(key string, def int) (int, bool) {
-	panic("not implemented") // TODO: Implement
+	if val := ctx.Param(key); val != nil {
+		return cast.ToInt(val), true
+	}
+	return def, false
 }
 
 func (ctx *Context) ParamInt64(key string, def int64) (int64, bool) {
-	panic("not implemented") // TODO: Implement
+	if val := ctx.Param(key); val != nil {
+		return cast.ToInt64(val), true
+	}
+	return def, false
 }
 
 func (ctx *Context) ParamFloat64(key string, def float64) (float64, bool) {
-	panic("not implemented") // TODO: Implement
+	if val := ctx.Param(key); val != nil {
+		return cast.ToFloat64(val), true
+	}
+	return def, false
 }
 
 func (ctx *Context) ParamFloat32(key string, def float32) (float32, bool) {
-	panic("not implemented") // TODO: Implement
+	if val := ctx.Param(key); val != nil {
+		return cast.ToFloat32(val), true
+	}
+	return def, false
 }
 
 func (ctx *Context) ParamBool(key string, def bool) (bool, bool) {
-	panic("not implemented") // TODO: Implement
+	if val := ctx.Param(key); val != nil {
+		return cast.ToBool(val), true
+	}
+	return def, false
 }
 
 func (ctx *Context) ParamString(key string, def string) (string, bool) {
-	panic("not implemented") // TODO: Implement
-}
-
-func (ctx *Context) ParamStringSlice(key string, def []string) ([]string, bool) {
-	panic("not implemented") // TODO: Implement
+	if val := ctx.Param(key); val != nil {
+		return cast.ToString(val), true
+	}
+	return def, false
 }
 
 func (ctx *Context) Param(key string) interface{} {
-	panic("not implemented") // TODO: Implement
+	if ctx.params != nil {
+		if val, ok := ctx.params[key]; ok {
+			return val
+		}
+	}
+	return nil
 }
 
 func (ctx *Context) FormAll() map[string][]string {
