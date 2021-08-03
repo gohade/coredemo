@@ -16,7 +16,7 @@ type node struct {
 	segment  string              // uri中的字符串
 	handlers []ControllerHandler // 中间件+控制器
 	childs   []*node             // 子节点
-	parent   *node
+	parent   *node               // 父节点，双向指针
 }
 
 func newNode() *node {
@@ -150,6 +150,7 @@ func (tree *Tree) AddRouter(uri string, handlers []ControllerHandler) error {
 				cnode.isLast = true
 				cnode.handlers = handlers
 			}
+			// 父节点指针修改
 			cnode.parent = n
 			n.childs = append(n.childs, cnode)
 			objNode = cnode

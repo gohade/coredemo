@@ -71,6 +71,7 @@ type IRequest interface {
 	Cookie(key string) (string, bool)
 }
 
+// 获取请求地址中所有参数
 func (ctx *Context) QueryAll() map[string][]string {
 	if ctx.request != nil {
 		return map[string][]string(ctx.request.URL.Query())
@@ -80,10 +81,13 @@ func (ctx *Context) QueryAll() map[string][]string {
 
 // 请求地址url中带的参数
 // 形如: foo.com?a=1&b=bar&c[]=bar
+
+// 获取Int类型的请求参数
 func (ctx *Context) QueryInt(key string, def int) (int, bool) {
 	params := ctx.QueryAll()
 	if vals, ok := params[key]; ok {
 		if len(vals) > 0 {
+			// 使用cast库将string转换为Int
 			return cast.ToInt(vals[0]), true
 		}
 	}
@@ -160,6 +164,7 @@ func (ctx *Context) Query(key string) interface{} {
 // 形如 /book/:id
 func (ctx *Context) ParamInt(key string, def int) (int, bool) {
 	if val := ctx.Param(key); val != nil {
+		// 通过cast进行类型转换
 		return cast.ToInt(val), true
 	}
 	return def, false
@@ -200,6 +205,7 @@ func (ctx *Context) ParamString(key string, def string) (string, bool) {
 	return def, false
 }
 
+// 获取路由参数
 func (ctx *Context) Param(key string) interface{} {
 	if ctx.params != nil {
 		if val, ok := ctx.params[key]; ok {
@@ -289,14 +295,18 @@ func (ctx *Context) Form(key string) interface{} {
 	return nil
 }
 
+// 将body文本解析到obj结构体中
 func (ctx *Context) BindJson(obj interface{}) error {
 	if ctx.request != nil {
+		// 读取文本
 		body, err := ioutil.ReadAll(ctx.request.Body)
 		if err != nil {
 			return err
 		}
+		// 重新填充request.Body，为后续的逻辑二次读取做准备
 		ctx.request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 
+		// 解析到obj结构体中
 		err = json.Unmarshal(body, obj)
 		if err != nil {
 			return err
