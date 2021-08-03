@@ -172,7 +172,9 @@ func (n *node) parseParamsFromEndNode(uri string) map[string]string {
 		if cur.segment == "" {
 			break
 		}
+		// 如果是通配符节点
 		if isWildSegment(cur.segment) {
+			// 设置params
 			ret[cur.segment[1:]] = segments[i]
 		}
 		cur = cur.parent
