@@ -36,7 +36,7 @@ type IResponse interface {
 	SetCookie(key string, val string, maxAge int, path, domain string, secure, httpOnly bool) IResponse
 
 	// 设置状态码
-	SetStaus(code int) IResponse
+	SetStatus(code int) IResponse
 
 	// 设置200状态
 	SetOkStatus() IResponse
@@ -44,22 +44,23 @@ type IResponse interface {
 
 // Jsonp输出
 func (ctx *Context) Jsonp(obj interface{}) IResponse {
+	// 获取请求参数callback
 	callbackFunc, _ := ctx.QueryString("callback", "callback_function")
 	ctx.SetHeader("Content-Type", "application/javascript")
+	// 输出到前端页面的时候需要注意下进行字符过滤，否则有可能造成xss攻击
 	callback := template.JSEscapeString(callbackFunc)
 
+	// 输出函数名
 	_, err := ctx.responseWriter.Write([]byte(callback))
 	if err != nil {
 		return ctx
 	}
+	// 输出左括号
 	_, err = ctx.responseWriter.Write([]byte("("))
 	if err != nil {
 		return ctx
 	}
-	_, err = ctx.responseWriter.Write([]byte("("))
-	if err != nil {
-		return ctx
-	}
+	// 数据函数参数
 	ret, err := json.Marshal(obj)
 	if err != nil {
 		return ctx
@@ -68,6 +69,7 @@ func (ctx *Context) Jsonp(obj interface{}) IResponse {
 	if err != nil {
 		return ctx
 	}
+	// 输出右括号
 	_, err = ctx.responseWriter.Write([]byte(")"))
 	if err != nil {
 		return ctx
@@ -79,7 +81,7 @@ func (ctx *Context) Jsonp(obj interface{}) IResponse {
 func (ctx *Context) Xml(obj interface{}) IResponse {
 	byt, err := xml.Marshal(obj)
 	if err != nil {
-		return ctx.SetStaus(http.StatusInternalServerError)
+		return ctx.SetStatus(http.StatusInternalServerError)
 	}
 	ctx.SetHeader("Content-Type", "application/html")
 	ctx.responseWriter.Write(byt)
@@ -88,11 +90,12 @@ func (ctx *Context) Xml(obj interface{}) IResponse {
 
 // html输出
 func (ctx *Context) Html(file string, obj interface{}) IResponse {
+	// 读取模版文件，创建template实例
 	t, err := template.New("output").ParseFiles(file)
 	if err != nil {
 		return ctx
 	}
-
+	// 执行Execute方法将obj和模版进行结合
 	if err := t.Execute(ctx.responseWriter, obj); err != nil {
 		return ctx
 	}
@@ -140,7 +143,7 @@ func (ctx *Context) SetCookie(key string, val string, maxAge int, path string, d
 }
 
 // 设置状态码
-func (ctx *Context) SetStaus(code int) IResponse {
+func (ctx *Context) SetStatus(code int) IResponse {
 	ctx.responseWriter.WriteHeader(code)
 	return ctx
 }
@@ -154,7 +157,7 @@ func (ctx *Context) SetOkStatus() IResponse {
 func (ctx *Context) Json(obj interface{}) IResponse {
 	byt, err := json.Marshal(obj)
 	if err != nil {
-		return ctx.SetStaus(http.StatusInternalServerError)
+		return ctx.SetStatus(http.StatusInternalServerError)
 	}
 	ctx.SetHeader("Content-Type", "application/json")
 	ctx.responseWriter.Write(byt)
