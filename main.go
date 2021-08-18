@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"coredemo/framework/gin"
-	"coredemo/framework/middleware"
+	"github.com/gohade/hade/framework/gin"
+	"github.com/gohade/hade/framework/middleware"
 	"log"
 	"net/http"
 	"os"

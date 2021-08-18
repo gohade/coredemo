@@ -17,7 +17,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
 
-	testdata "coredemo/framework/gin/testdata/protoexample"
+	testdata "github.com/gohade/hade/framework/gin/testdata/protoexample"
 )
 
 // TODO unit tests

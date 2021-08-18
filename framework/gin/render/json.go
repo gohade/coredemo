@@ -10,8 +10,8 @@ import (
 	"html/template"
 	"net/http"
 
-	"coredemo/framework/gin/internal/bytesconv"
-	"coredemo/framework/gin/internal/json"
+	"github.com/gohade/hade/framework/gin/internal/bytesconv"
+	"github.com/gohade/hade/framework/gin/internal/json"
 )
 
 // JSON contains the given interface object.

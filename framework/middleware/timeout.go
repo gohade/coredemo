@@ -2,8 +2,8 @@ package middleware
 
 import (
 	"context"
-	"coredemo/framework/gin"
 	"fmt"
+	"github.com/gohade/hade/framework/gin"
 	"log"
 	"time"
 )

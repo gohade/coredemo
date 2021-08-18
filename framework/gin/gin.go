@@ -14,8 +14,8 @@ import (
 	"strings"
 	"sync"
 
-	"coredemo/framework/gin/internal/bytesconv"
-	"coredemo/framework/gin/render"
+	"github.com/gohade/hade/framework/gin/internal/bytesconv"
+	"github.com/gohade/hade/framework/gin/render"
 )
 
 const defaultMultipartMemory = 32 << 20 // 32 MB

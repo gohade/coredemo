@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"coredemo/framework/gin"
 	"fmt"
+	"github.com/gohade/hade/framework/gin"
 )
 
 func Test1() gin.HandlerFunc {

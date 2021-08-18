@@ -1,8 +1,8 @@
 package main
 
 import (
-	"coredemo/framework/gin"
 	"fmt"
+	"github.com/gohade/hade/framework/gin"
 )
 
 func SubjectAddController(c *gin.Context) {

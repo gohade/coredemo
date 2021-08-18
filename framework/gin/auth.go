@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"coredemo/framework/gin/internal/bytesconv"
+	"github.com/gohade/hade/framework/gin/internal/bytesconv"
 )
 
 // AuthUserKey is the cookie name for user credential in basic auth.

@@ -1,4 +1,4 @@
-module coredemo
+module github.com/gohade/hade
 
 go 1.15
 

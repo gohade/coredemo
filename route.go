@@ -1,8 +1,8 @@
 package main
 
 import (
-	"coredemo/framework/gin"
-	"coredemo/framework/middleware"
+	"github.com/gohade/hade/framework/gin"
+	"github.com/gohade/hade/framework/middleware"
 )
 
 // 注册路由规则

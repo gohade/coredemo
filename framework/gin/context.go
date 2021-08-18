@@ -19,8 +19,8 @@ import (
 	"sync"
 	"time"
 
-	"coredemo/framework/gin/binding"
-	"coredemo/framework/gin/render"
+	"github.com/gohade/hade/framework/gin/binding"
+	"github.com/gohade/hade/framework/gin/render"
 
 	"github.com/gin-contrib/sse"
 )

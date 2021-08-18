@@ -10,7 +10,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"coredemo/framework/gin/binding"
+	"github.com/gohade/hade/framework/gin/binding"
 	"github.com/stretchr/testify/assert"
 )
 

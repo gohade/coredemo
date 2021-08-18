@@ -15,7 +15,7 @@
 package main
 
 import (
-	"coredemo/framework/gin"
+	"github.com/gohade/hade/framework/gin"
 )
 
 func main() {
