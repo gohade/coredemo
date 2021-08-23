@@ -1,15 +1,19 @@
+// Copyright 2021 jianfengye.  All rights reserved.
+// Use of this source code is governed by a MIT style
+// license that can be found in the LICENSE file.
 package main
 
 import (
 	"context"
-	"github.com/gohade/hade/framework/gin"
-	"github.com/gohade/hade/framework/middleware"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/gohade/hade/framework/gin"
+	"github.com/gohade/hade/framework/middleware"
 )
 
 func main() {

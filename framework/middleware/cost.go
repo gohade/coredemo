@@ -1,9 +1,13 @@
+// Copyright 2021 jianfengye.  All rights reserved.
+// Use of this source code is governed by a MIT style
+// license that can be found in the LICENSE file.
 package middleware
 
 import (
-	"github.com/gohade/hade/framework/gin"
 	"log"
 	"time"
+
+	"github.com/gohade/hade/framework/gin"
 )
 
 // recovery机制，将协程中的函数异常进行捕获
