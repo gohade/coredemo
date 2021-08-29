@@ -14,10 +14,14 @@ import (
 
 	"github.com/gohade/hade/framework/gin"
 	"github.com/gohade/hade/framework/middleware"
+	"github.com/gohade/hade/provider/demo"
 )
 
 func main() {
+	// 创建engine结构
 	core := gin.New()
+	// 绑定具体的服务
+	core.Bind(&demo.DemoServiceProvider{})
 
 	core.Use(gin.Recovery())
 	core.Use(middleware.Cost())
