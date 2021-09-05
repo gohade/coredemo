@@ -6,7 +6,7 @@ import (
 
 // NewHttpEngine is command
 func NewHttpEngine() (*gin.Engine, error) {
-	gin.SetMode(gin.ReleaseMode)
+	//gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
 
 	Routes(r)
