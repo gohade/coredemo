@@ -64,7 +64,7 @@ func (group *RouterGroup) Group(relativePath string, handlers ...HandlerFunc) *R
 }
 
 // BasePath returns the base path of router group.
-// For example, if v := router.Group("/rest/n/v1/api"), v.BasePath() is "/rest/n/v1/api".
+// For example, if v := router.Group("/rest/n/v1/api"), v.BaseFolder() is "/rest/n/v1/api".
 func (group *RouterGroup) BasePath() string {
 	return group.basePath
 }
