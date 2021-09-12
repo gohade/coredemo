@@ -1,7 +1,9 @@
 package demo
 
 import (
+	"fmt"
 	"github.com/gohade/hade/framework/cobra"
+	"github.com/gohade/hade/framework/contract"
 	"log"
 )
 
@@ -19,8 +21,12 @@ var FooCommand = &cobra.Command{
 	Aliases: []string{"fo", "f"},
 	Example: "foo命令的例子",
 	RunE: func(c *cobra.Command, args []string) error {
-		container := c.GetContainer()
-		log.Println(container)
+		configService := c.GetContainer().MustMake(contract.ConfigKey).(contract.Config)
+		envService := c.GetContainer().MustMake(contract.EnvKey).(contract.Env)
+		fmt.Println("APP_ENV: ", envService.Get("APP_ENV"))
+		fmt.Println("FOO_ENV: ", envService.Get("FOO_ENV"))
+
+		fmt.Println("config url:", configService.GetString("app.url"))
 		return nil
 	},
 }
