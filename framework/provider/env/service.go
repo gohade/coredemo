@@ -12,50 +12,57 @@ import (
 	"github.com/pkg/errors"
 )
 
+// HadeEnv 是 Env 的具体实现
 type HadeEnv struct {
-	folder string // represent env folder
-
-	maps map[string]string
+	folder string            // 代表.env所在的目录
+	maps   map[string]string // 保存所有的环境变量
 }
 
-// NewHadeEnv have two params: folder and env
-// for example: NewHadeEnv("/envfolder/")
-// It will read file: /envfolder/.env
-// The file have format XXX=XXX
+// NewHadeEnv 有一个参数，.env文件所在的目录
+// example: NewHadeEnv("/envfolder/") 会读取文件: /envfolder/.env
+// .env的文件格式 FOO_ENV=BAR
 func NewHadeEnv(params ...interface{}) (interface{}, error) {
 	if len(params) != 1 {
 		return nil, errors.New("NewHadeEnv param error")
 	}
 
+	// 读取folder文件
 	folder := params[0].(string)
 
+	// 实例化
 	hadeEnv := &HadeEnv{
 		folder: folder,
-		maps:   map[string]string{"APP_ENV": contract.EnvDevelopment},
+		// 实例化环境变量，APP_ENV默认设置为开发环境
+		maps: map[string]string{"APP_ENV": contract.EnvDevelopment},
 	}
 
-	// parse .env
+	// 解析folder/.env文件
 	file := path.Join(folder, ".env")
-	_, err := os.Stat(file)
-	if err == nil {
-		fi, err := os.Open(file)
-		if err == nil {
-			defer fi.Close()
+	// 读取.env文件, 不管任意失败，都不影响后续
 
-			br := bufio.NewReader(fi)
-			for {
-				line, _, c := br.ReadLine()
-				if c == io.EOF {
-					break
-				}
-				s := bytes.SplitN(line, []byte{'='}, 2)
-				if len(s) < 2 {
-					continue
-				}
-				key := string(s[0])
-				val := string(s[1])
-				hadeEnv.maps[key] = val
+	// 打开文件.env
+	fi, err := os.Open(file)
+	if err == nil {
+		defer fi.Close()
+
+		// 读取文件
+		br := bufio.NewReader(fi)
+		for {
+			// 按照行进行读取
+			line, _, c := br.ReadLine()
+			if c == io.EOF {
+				break
 			}
+			// 按照等号解析
+			s := bytes.SplitN(line, []byte{'='}, 2)
+			// 如果不符合规范，则过滤
+			if len(s) < 2 {
+				continue
+			}
+			// 保存map
+			key := string(s[0])
+			val := string(s[1])
+			hadeEnv.maps[key] = val
 		}
 	}
 
@@ -67,21 +74,23 @@ func NewHadeEnv(params ...interface{}) (interface{}, error) {
 		}
 		hadeEnv.maps[pair[0]] = pair[1]
 	}
+
+	// 返回实例
 	return hadeEnv, nil
 }
 
-// AppEnv get current environment
+// AppEnv 获取表示当前APP环境的变量APP_ENV
 func (en *HadeEnv) AppEnv() string {
 	return en.Get("APP_ENV")
 }
 
-// IsExist check setting is exist
+// IsExist 判断一个环境变量是否有被设置
 func (en *HadeEnv) IsExist(key string) bool {
 	_, ok := en.maps[key]
 	return ok
 }
 
-// Get environment setting, if not exist, return ""
+// Get 获取某个环境变量，如果没有设置，返回""
 func (en *HadeEnv) Get(key string) string {
 	if val, ok := en.maps[key]; ok {
 		return val
@@ -89,7 +98,7 @@ func (en *HadeEnv) Get(key string) string {
 	return ""
 }
 
-// All return all settings
+// All 获取所有的环境变量，.env和运行环境变量融合后结果
 func (en *HadeEnv) All() map[string]string {
 	return en.maps
 }
