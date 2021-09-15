@@ -26,12 +26,10 @@ type Config interface {
 	GetTime(key string) time.Time
 	// GetString 获取一个string属性
 	GetString(key string) string
-
 	// GetIntSlice 获取一个int数组属性
 	GetIntSlice(key string) []int
 	// GetStringSlice 获取一个string数组
 	GetStringSlice(key string) []string
-
 	// GetStringMap 获取一个string为key，interface为val的map
 	GetStringMap(key string) map[string]interface{}
 	// GetStringMapString 获取一个string为key，string为val的map
