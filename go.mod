@@ -4,6 +4,7 @@ go 1.15
 
 require (
 	github.com/erikdubbelboer/gspt v0.0.0-20210805194459-ce36a5128377
+	github.com/fsnotify/fsnotify v1.4.9
 	github.com/gin-contrib/sse v0.1.0
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/golang/protobuf v1.5.2

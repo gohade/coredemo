@@ -28,6 +28,7 @@ func (provider *HadeConfigProvider) Params(c framework.Container) []interface{} 
 	appService := c.MustMake(contract.AppKey).(contract.App)
 	envService := c.MustMake(contract.EnvKey).(contract.Env)
 	env := envService.AppEnv()
+	// 配置文件夹地址
 	configFolder := appService.ConfigFolder()
 	envFolder := filepath.Join(configFolder, env)
 	return []interface{}{c, envFolder, envService.All()}
