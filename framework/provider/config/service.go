@@ -18,46 +18,38 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// HadeConfig  表示hade框架的配置文件服务
 type HadeConfig struct {
-	c framework.Container
+	c framework.Container // 容器
 
-	folder   string
-	env      string
-	keyDelim string
+	folder   string // 文件夹
+	keyDelim string // 路径的分隔符，默认为点
 
-	envMaps  map[string]string // envmap
-	confMaps map[string]interface{}
-	confRaws map[string][]byte
+	envMaps  map[string]string      // 所有的环境变量
+	confMaps map[string]interface{} // 配置文件结构，key为文件名
+	confRaws map[string][]byte      // 配置文件的原始信息
 }
 
+// NewHadeConfig 初始化Config方法
 func NewHadeConfig(params ...interface{}) (interface{}, error) {
-	if len(params) != 4 {
-		return nil, errors.New("NewHadeConfig params error")
-	}
-
-	folder := params[0].(string)
-	envMaps := params[1].(map[string]string)
-	env := params[2].(string)
-
-	c := params[3].(framework.Container)
-
-	envFolder := filepath.Join(folder, env)
-	// check folder exist
+	container := params[0].(framework.Container)
+	envFolder := params[1].(string)
+	envMaps := params[2].(map[string]string)
+	// 检查文件夹是否存在
 	if _, err := os.Stat(envFolder); os.IsNotExist(err) {
 		return nil, errors.New("folder " + envFolder + " not exist: " + err.Error())
 	}
 
 	hadeConf := &HadeConfig{
-		c:        c,
-		folder:   folder,
-		env:      env,
+		c:        container,
+		folder:   envFolder,
 		envMaps:  envMaps,
 		confMaps: map[string]interface{}{},
 		confRaws: map[string][]byte{},
 		keyDelim: ".",
 	}
 
-	// read all yml/yaml files in folder
+	// 读取每个文件
 	files, err := ioutil.ReadDir(envFolder)
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -67,15 +59,15 @@ func NewHadeConfig(params ...interface{}) (interface{}, error) {
 		if len(s) == 2 && (s[1] == "yaml" || s[1] == "yml") {
 			name := s[0]
 
-			// read file bytes
+			// 读取文件内容
 			bf, err := ioutil.ReadFile(filepath.Join(envFolder, file.Name()))
 			if err != nil {
 				continue
 			}
 			hadeConf.confRaws[name] = bf
-			// do replace
+			// 直接针对文本做环境变量的替换
 			bf = replace(bf, envMaps)
-			// parse yaml
+			// 解析对应的文件
 			c := map[string]interface{}{}
 			if err := yaml.Unmarshal(bf, &c); err != nil {
 				continue
@@ -84,10 +76,10 @@ func NewHadeConfig(params ...interface{}) (interface{}, error) {
 		}
 	}
 
-	// init app path
-	if hadeConf.IsExist("app.path") && c.IsBind(contract.AppKey) {
+	// 初始化config
+	if hadeConf.IsExist("app.path") && container.IsBind(contract.AppKey) {
 		appPaths := hadeConf.GetStringMapString("app.path")
-		appService := c.MustMake(contract.AppKey).(contract.App)
+		appService := container.MustMake(contract.AppKey).(contract.App)
 		appService.LoadAppConfig(appPaths)
 	}
 	return hadeConf, nil

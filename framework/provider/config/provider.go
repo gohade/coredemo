@@ -3,15 +3,10 @@ package config
 import (
 	"github.com/gohade/hade/framework"
 	"github.com/gohade/hade/framework/contract"
+	"path/filepath"
 )
 
-type HadeConfigProvider struct {
-	c      framework.Container
-	folder string
-	env    string
-
-	envMaps map[string]string
-}
+type HadeConfigProvider struct{}
 
 // Register registe a new function for make a service instance
 func (provider *HadeConfigProvider) Register(c framework.Container) framework.NewInstance {
@@ -20,10 +15,6 @@ func (provider *HadeConfigProvider) Register(c framework.Container) framework.Ne
 
 // Boot will called when the service instantiate
 func (provider *HadeConfigProvider) Boot(c framework.Container) error {
-	provider.folder = c.MustMake(contract.AppKey).(contract.App).ConfigFolder()
-	provider.envMaps = c.MustMake(contract.EnvKey).(contract.Env).All()
-	provider.env = c.MustMake(contract.EnvKey).(contract.Env).AppEnv()
-	provider.c = c
 	return nil
 }
 
@@ -34,7 +25,12 @@ func (provider *HadeConfigProvider) IsDefer() bool {
 
 // Params define the necessary params for NewInstance
 func (provider *HadeConfigProvider) Params(c framework.Container) []interface{} {
-	return []interface{}{provider.folder, provider.envMaps, provider.env, provider.c}
+	appService := c.MustMake(contract.AppKey).(contract.App)
+	envService := c.MustMake(contract.EnvKey).(contract.Env)
+	env := envService.AppEnv()
+	configFolder := appService.ConfigFolder()
+	envFolder := filepath.Join(configFolder, env)
+	return []interface{}{envFolder, envService.All()}
 }
 
 /// Name define the name for this service
