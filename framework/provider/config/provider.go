@@ -30,7 +30,7 @@ func (provider *HadeConfigProvider) Params(c framework.Container) []interface{} 
 	env := envService.AppEnv()
 	configFolder := appService.ConfigFolder()
 	envFolder := filepath.Join(configFolder, env)
-	return []interface{}{envFolder, envService.All()}
+	return []interface{}{c, envFolder, envService.All()}
 }
 
 /// Name define the name for this service

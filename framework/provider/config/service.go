@@ -76,7 +76,7 @@ func NewHadeConfig(params ...interface{}) (interface{}, error) {
 		}
 	}
 
-	// 初始化config
+	// 读取app.path中的信息，更新app对应的folder
 	if hadeConf.IsExist("app.path") && container.IsBind(contract.AppKey) {
 		appPaths := hadeConf.GetStringMapString("app.path")
 		appService := container.MustMake(contract.AppKey).(contract.App)

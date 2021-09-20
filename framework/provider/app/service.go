@@ -135,5 +135,7 @@ func NewHadeApp(params ...interface{}) (interface{}, error) {
 }
 
 func (app *HadeApp) LoadAppConfig(kv map[string]string) {
-	app.configMap = kv
+	for key, val := range kv {
+		app.configMap[key] = val
+	}
 }
