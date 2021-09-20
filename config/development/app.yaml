@@ -1,0 +1,9 @@
+url: http://127.0.0.1:8066
+
+swagger_open: true
+
+dev_fresh: 1
+
+path:
+  log_folder: "/home/jianfengye/hade/log/"
+  runtime_folder: "/home/jianfengye/hade/runtime/"
