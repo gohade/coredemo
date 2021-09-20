@@ -134,6 +134,7 @@ func NewHadeApp(params ...interface{}) (interface{}, error) {
 	return &HadeApp{baseFolder: baseFolder, container: container, appId: appId, configMap: configMap}, nil
 }
 
+// LoadAppConfig 加载配置map
 func (app *HadeApp) LoadAppConfig(kv map[string]string) {
 	for key, val := range kv {
 		app.configMap[key] = val

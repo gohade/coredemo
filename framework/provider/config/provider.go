@@ -20,7 +20,7 @@ func (provider *HadeConfigProvider) Boot(c framework.Container) error {
 
 // IsDefer define whether the service instantiate when first make or register
 func (provider *HadeConfigProvider) IsDefer() bool {
-	return true
+	return false
 }
 
 // Params define the necessary params for NewInstance

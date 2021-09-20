@@ -1,7 +1,7 @@
 mysql:
   hostname: 127.0.0.1
   username: yejianfeng
-  password: 1234563
+  password: 456789
   timeout: 1
   readtime: 2.3
 

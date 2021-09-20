@@ -7,11 +7,8 @@ import (
 	"github.com/kr/pretty"
 )
 
-var configPath string
-
 // initConfigCommand 获取配置相关的命令
 func initConfigCommand() *cobra.Command {
-	configGetCommand.Flags().StringVarP(&configPath, "path", "p", "", "配置文件路径")
 	configCommand.AddCommand(configGetCommand)
 	return configCommand
 }
@@ -35,6 +32,11 @@ var configGetCommand = &cobra.Command{
 	RunE: func(c *cobra.Command, args []string) error {
 		container := c.GetContainer()
 		configService := container.MustMake(contract.ConfigKey).(contract.Config)
+		if len(args) != 1 {
+			fmt.Println("参数错误")
+			return nil
+		}
+		configPath := args[0]
 		val := configService.Get(configPath)
 		if val == nil {
 			fmt.Println("配置路径 ", configPath, " 不存在")
