@@ -18,25 +18,16 @@ func (c *Core) Get(url string, handler ControllerHandler) {
 	c.router[url] = handler
 }
 
-func (c *Core) Post(url string, handler ControllerHandler) {
-	c.router[url] = handler
-}
-
-func (c *Core) FindRouteByRequest(request *http.Request) ControllerHandler {
-	return c.router["foo"]
-}
-
 func (c *Core) ServeHTTP(response http.ResponseWriter, request *http.Request) {
 	log.Println("core.serveHTTP")
 	ctx := NewContext(request, response)
 
-	router := c.FindRouteByRequest(request)
+	// 一个简单的路由选择器，这里直接写死为测试路由foo
+	router := c.router["foo"]
 	if router == nil {
 		return
 	}
 	log.Println("core.router")
-
-	ctx.SetHandler(router)
 
 	router(ctx)
 
