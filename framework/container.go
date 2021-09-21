@@ -75,6 +75,7 @@ func (hade *HadeContainer) Bind(provider ServiceProvider) error {
 		method := provider.Register(hade)
 		instance, err := method(params...)
 		if err != nil {
+			fmt.Println("bind service provider ", key, " error: ", err)
 			return errors.New(err.Error())
 		}
 		hade.instances[key] = instance
