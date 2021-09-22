@@ -1,21 +1,21 @@
 package services
 
 import (
-	"os"
-
 	"github.com/gohade/hade/framework"
 	"github.com/gohade/hade/framework/contract"
+	"io"
 )
 
-type HadeConsoleLog struct {
+type HadeCustomLog struct {
 	HadeLog
 }
 
-func NewHadeConsoleLog(params ...interface{}) (interface{}, error) {
+func NewHadeCustomLog(params ...interface{}) (interface{}, error) {
 	c := params[0].(framework.Container)
 	level := params[1].(contract.LogLevel)
 	ctxFielder := params[2].(contract.CtxFielder)
 	formatter := params[3].(contract.Formatter)
+	output := params[4].(io.Writer)
 
 	log := &HadeConsoleLog{}
 
@@ -23,7 +23,7 @@ func NewHadeConsoleLog(params ...interface{}) (interface{}, error) {
 	log.SetCtxFielder(ctxFielder)
 	log.SetFormatter(formatter)
 
-	log.SetOutput(os.Stdout)
+	log.SetOutput(output)
 	log.c = c
 	return log, nil
 }

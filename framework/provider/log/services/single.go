@@ -21,19 +21,17 @@ type HadeSingleLog struct {
 
 // NewHadeSingleLog params sequence: level, ctxFielder, Formatter, map[string]interface(folder/file)
 func NewHadeSingleLog(params ...interface{}) (interface{}, error) {
-
-	level := params[0].(contract.LogLevel)
-	ctxFielder := params[1].(contract.CtxFielder)
-	formatter := params[2].(contract.Formatter)
-
-	c := params[3].(framework.Container)
+	c := params[0].(framework.Container)
+	level := params[1].(contract.LogLevel)
+	ctxFielder := params[2].(contract.CtxFielder)
+	formatter := params[3].(contract.Formatter)
 
 	appService := c.MustMake(contract.AppKey).(contract.App)
 	configService := c.MustMake(contract.ConfigKey).(contract.Config)
 
 	log := &HadeSingleLog{}
 	log.SetLevel(level)
-	log.SetCxtFielder(ctxFielder)
+	log.SetCtxFielder(ctxFielder)
 	log.SetFormatter(formatter)
 
 	folder := appService.LogFolder()
@@ -59,12 +57,4 @@ func NewHadeSingleLog(params ...interface{}) (interface{}, error) {
 	log.c = c
 
 	return log, nil
-}
-
-func (l *HadeSingleLog) SetFile(file string) {
-	l.file = file
-}
-
-func (l *HadeSingleLog) SetFolder(folder string) {
-	l.folder = folder
 }

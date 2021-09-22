@@ -11,12 +11,13 @@ import (
 	"github.com/gohade/hade/framework/provider/log/formatter"
 )
 
+// HadeLog 的基本方法
 type HadeLog struct {
+	// 四个参数
 	level      contract.LogLevel
 	formatter  contract.Formatter
 	ctxFielder contract.CtxFielder
-
-	output io.Writer
+	output     io.Writer
 
 	c framework.Container
 }
@@ -115,7 +116,7 @@ func (log *HadeLog) SetLevel(level contract.LogLevel) {
 }
 
 // SetCxtFielder will get fields from context
-func (log *HadeLog) SetCxtFielder(handler contract.CtxFielder) {
+func (log *HadeLog) SetCtxFielder(handler contract.CtxFielder) {
 	log.ctxFielder = handler
 }
 

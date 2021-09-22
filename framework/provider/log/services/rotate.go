@@ -22,10 +22,10 @@ type HadeRotateLog struct {
 }
 
 func NewHadeRotateLog(params ...interface{}) (interface{}, error) {
-	level := params[0].(contract.LogLevel)
-	ctxFielder := params[1].(contract.CtxFielder)
-	formatter := params[2].(contract.Formatter)
-	c := params[3].(framework.Container)
+	c := params[0].(framework.Container)
+	level := params[1].(contract.LogLevel)
+	ctxFielder := params[2].(contract.CtxFielder)
+	formatter := params[3].(contract.Formatter)
 
 	appService := c.MustMake(contract.AppKey).(contract.App)
 	configService := c.MustMake(contract.ConfigKey).(contract.Config)
@@ -75,10 +75,10 @@ func NewHadeRotateLog(params ...interface{}) (interface{}, error) {
 
 	log := &HadeRotateLog{}
 	log.SetLevel(level)
-	log.SetCxtFielder(ctxFielder)
+	log.SetCtxFielder(ctxFielder)
 	log.SetFormatter(formatter)
-	log.SetFile(file)
-	log.SetFolder(folder)
+	log.folder = folder
+	log.file = file
 
 	w, err := rotatelogs.New(fmt.Sprintf("%s.%s", filepath.Join(log.folder, log.file), dateFormat), options...)
 	if err != nil {
@@ -87,12 +87,4 @@ func NewHadeRotateLog(params ...interface{}) (interface{}, error) {
 	log.SetOutput(w)
 	log.c = c
 	return log, nil
-}
-
-func (l *HadeRotateLog) SetFolder(folder string) {
-	l.folder = folder
-}
-
-func (l *HadeRotateLog) SetFile(file string) {
-	l.file = file
 }

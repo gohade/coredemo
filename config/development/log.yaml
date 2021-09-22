@@ -1,4 +1,5 @@
 driver: console
+formatter: text
 level: trace
 
 #driver: single

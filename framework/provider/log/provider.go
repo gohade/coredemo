@@ -2,6 +2,7 @@ package log
 
 import (
 	"github.com/gohade/hade/framework/provider/log/formatter"
+	"io"
 	"strings"
 
 	"github.com/gohade/hade/framework"
@@ -9,53 +10,63 @@ import (
 	"github.com/gohade/hade/framework/provider/log/services"
 )
 
+// HadeLogServiceProvider 服务提供者
 type HadeLogServiceProvider struct {
 	framework.ServiceProvider
 
-	driver string // driver
+	Driver string // Driver
 
-	// common config for log
-	Formatter  contract.Formatter
-	Level      contract.LogLevel
+	// 日志级别
+	Level contract.LogLevel
+	// 日志输出格式方法
+	Formatter contract.Formatter
+	// 日志context上下文信息获取函数
 	CtxFielder contract.CtxFielder
+	// 日志输出信息
+	Output io.Writer
 }
 
-// Register registe a new function for make a service instance
+// Register 注册一个服务实例
 func (l *HadeLogServiceProvider) Register(c framework.Container) framework.NewInstance {
-	tcs, err := c.Make(contract.ConfigKey)
-	if err != nil {
-		return services.NewHadeConsoleLog
+	if l.Driver == "" {
+		tcs, err := c.Make(contract.ConfigKey)
+		if err != nil {
+			// 默认使用console
+			return services.NewHadeConsoleLog
+		}
+
+		cs := tcs.(contract.Config)
+		l.Driver = strings.ToLower(cs.GetString("log.Driver"))
 	}
 
-	cs := tcs.(contract.Config)
-
-	l.driver = strings.ToLower(cs.GetString("log.driver"))
-
-	switch l.driver {
+	// 根据driver的配置项确定
+	switch l.Driver {
 	case "single":
 		return services.NewHadeSingleLog
 	case "rotate":
 		return services.NewHadeRotateLog
 	case "console":
 		return services.NewHadeConsoleLog
+	case "custom":
+		return services.NewHadeCustomLog
 	default:
 		return services.NewHadeConsoleLog
 	}
 }
 
-// Boot will called when the service instantiate
+// Boot 启动的时候注入
 func (l *HadeLogServiceProvider) Boot(c framework.Container) error {
 	return nil
 }
 
-// IsDefer define whether the service instantiate when first make or register
+// IsDefer 是否延迟加载
 func (l *HadeLogServiceProvider) IsDefer() bool {
 	return false
 }
 
-// Params define the necessary params for NewInstance
+// Params 定义要传递给实例化方法的参数
 func (l *HadeLogServiceProvider) Params(c framework.Container) []interface{} {
-	// param sequence: level, ctxFielder, Formatter, map[string]string(folder/file)
+	// 获取configService
 	configService := c.MustMake(contract.ConfigKey).(contract.Config)
 
 	// 设置参数formatter
@@ -78,10 +89,11 @@ func (l *HadeLogServiceProvider) Params(c framework.Container) []interface{} {
 		}
 	}
 
-	return []interface{}{l.Level, l.CtxFielder, l.Formatter, c}
+	// 定义5个参数
+	return []interface{}{c, l.Level, l.CtxFielder, l.Formatter, l.Output}
 }
 
-/// Name define the name for this service
+// Name 定义对应的服务字符串凭证
 func (l *HadeLogServiceProvider) Name() string {
 	return contract.LogKey
 }
