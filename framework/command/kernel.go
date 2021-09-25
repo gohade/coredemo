@@ -12,6 +12,12 @@ func AddKernelCommands(root *cobra.Command) {
 	root.AddCommand(initCronCommand())
 	// config 命令
 	root.AddCommand(initConfigCommand())
+	// build 命令
+	root.AddCommand(initBuildCommand())
+	// go build
+	root.AddCommand(goCommand)
+	// npm build
+	root.AddCommand(npmCommand)
 	//root.AddCommand(deployCommand)
 	//
 	// cron
@@ -20,12 +26,6 @@ func AddKernelCommands(root *cobra.Command) {
 	//cmdCommand.AddCommand(cmdCreateCommand)
 	//root.AddCommand(cmdCommand)
 	//
-	//// build
-	//buildCommand.AddCommand(buildSelfCommand)
-	//buildCommand.AddCommand(buildBackendCommand)
-	//buildCommand.AddCommand(buildFrontendCommand)
-	//buildCommand.AddCommand(buildAllCommand)
-	//root.AddCommand(buildCommand)
 	//
 	//// dev
 	//root.AddCommand(initDevCommand())
