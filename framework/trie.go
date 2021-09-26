@@ -107,8 +107,8 @@ func (n *node) matchNode(uri string) *node {
 /book/:id (冲突)
 /book/:id/name
 /book/:student/age
-/:user/name(冲突)
-/:user/name/:age
+/:user/name
+/:user/name/:age (冲突)
 */
 func (tree *Tree) AddRouter(uri string, handler ControllerHandler) error {
 	n := tree.root
