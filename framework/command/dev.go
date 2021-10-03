@@ -126,21 +126,26 @@ func (p *Proxy) newProxyReverseProxy(frontend, backend *url.URL) *httputil.Rever
 
 	// 两个都有进程
 	director := func(req *http.Request) {
-		req.URL.Scheme = backend.Scheme
-		req.URL.Host = backend.Host
+		if req.URL.Path == "/" || req.URL.Path == "/app.js" {
+			req.URL.Scheme = frontend.Scheme
+			req.URL.Host = frontend.Host
+		} else {
+			req.URL.Scheme = backend.Scheme
+			req.URL.Host = backend.Host
+		}
 	}
 
-	redirectErr := errors.New("response is 404, need to redirect")
+	NotFoundErr := errors.New("response is 404, need to redirect")
 	return &httputil.ReverseProxy{Director: director,
 		ModifyResponse: func(response *http.Response) error {
 			if response.StatusCode == 404 {
-				return redirectErr
+				return NotFoundErr
 			}
 			return nil
 		},
 		ErrorHandler: func(writer http.ResponseWriter, request *http.Request, err error) {
-			if errors.Is(err, redirectErr) {
-				httputil.NewSingleHostReverseProxy(frontend).ServeHTTP(writer, request)
+			if errors.Is(err, NotFoundErr) {
+				httputil.NewSingleHostReverseProxy(backend).ServeHTTP(writer, request)
 			}
 		}}
 }
@@ -368,10 +373,8 @@ var devAllCommand = &cobra.Command{
 	Short: "同时启动前端和后端调试",
 	RunE: func(c *cobra.Command, args []string) error {
 		proxy := NewProxy(c.GetContainer())
+		go proxy.monitorBackend()
 		if err := proxy.restartProxy(true, true); err != nil {
-			return err
-		}
-		if err := proxy.monitorBackend(); err != nil {
 			return err
 		}
 		return nil

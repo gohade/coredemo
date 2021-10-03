@@ -41,7 +41,7 @@ func (api *DemoApi) Demo(c *gin.Context) {
 		"user": "jianfengye",
 	})
 
-	c.JSON(200, "11123456235")
+	c.JSON(200, "111234562352212")
 }
 
 // Demo godoc
