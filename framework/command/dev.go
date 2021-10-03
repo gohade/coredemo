@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"sync"
 	"syscall"
 	"time"
 
@@ -19,15 +18,6 @@ import (
 	"github.com/gohade/hade/framework/util"
 
 	"github.com/fsnotify/fsnotify"
-)
-
-const (
-	frontendPrefix = "/dist"
-)
-
-var (
-	refreshTime int32
-	proxyURL    string
 )
 
 // devConfig 代表调试模式的配置信息
@@ -86,11 +76,10 @@ func initDevConfig(c framework.Container) *devConfig {
 
 // Proxy 代表serve启动的backend的服务器代理
 type Proxy struct {
-	devConfig   *devConfig    // 配置文件
-	proxyServer *http.Server  // proxy的服务
-	backendPid  int           // 当前的backend服务的pid
-	frontendPid int           // 当前的frontend服务的pid
-	lock        *sync.RWMutex // 锁机制
+	devConfig   *devConfig   // 配置文件
+	proxyServer *http.Server // proxy的服务
+	backendPid  int          // 当前的backend服务的pid
+	frontendPid int          // 当前的frontend服务的pid
 }
 
 // NewProxy 初始化一个Proxy
@@ -98,54 +87,48 @@ func NewProxy(c framework.Container) *Proxy {
 	devConfig := initDevConfig(c)
 	return &Proxy{
 		devConfig: devConfig,
-		lock:      &sync.RWMutex{},
 	}
 }
 
 // 重新启动一个proxy网关
 func (p *Proxy) newProxyReverseProxy(frontend, backend *url.URL) *httputil.ReverseProxy {
-	if p.frontendPid == 0 {
-		if p.backendPid != 0 {
-			director := func(req *http.Request) {
-				req.URL.Scheme = backend.Scheme
-				req.URL.Host = backend.Host
-			}
-			return &httputil.ReverseProxy{Director: director}
-		}
+	if p.frontendPid == 0 && p.backendPid == 0 {
+		fmt.Println("前端和后端服务都不存在")
+		return nil
 	}
 
-	if p.backendPid == 0 {
-		if p.frontendPid != 0 {
-			director := func(req *http.Request) {
-				req.URL.Scheme = frontend.Scheme
-				req.URL.Host = frontend.Host
-			}
-			return &httputil.ReverseProxy{Director: director}
-		}
+	// 后端服务存在
+	if p.frontendPid == 0 && p.backendPid != 0 {
+		return httputil.NewSingleHostReverseProxy(backend)
+	}
+
+	// 前端服务存在
+	if p.backendPid == 0 && p.frontendPid != 0 {
+		return httputil.NewSingleHostReverseProxy(frontend)
 	}
 
 	// 两个都有进程
+	// 先创建一个后端服务的directory
 	director := func(req *http.Request) {
-		if req.URL.Path == "/" || req.URL.Path == "/app.js" {
-			req.URL.Scheme = frontend.Scheme
-			req.URL.Host = frontend.Host
-		} else {
-			req.URL.Scheme = backend.Scheme
-			req.URL.Host = backend.Host
-		}
+		req.URL.Scheme = backend.Scheme
+		req.URL.Host = backend.Host
 	}
 
+	// 定义一个NotFoundErr
 	NotFoundErr := errors.New("response is 404, need to redirect")
-	return &httputil.ReverseProxy{Director: director,
+	return &httputil.ReverseProxy{
+		Director: director, // 先转发到后端服务
 		ModifyResponse: func(response *http.Response) error {
+			// 如果后端服务返回了404，我们返回NotFoundErr 会进入到errorHandler中
 			if response.StatusCode == 404 {
 				return NotFoundErr
 			}
 			return nil
 		},
 		ErrorHandler: func(writer http.ResponseWriter, request *http.Request, err error) {
+			// 判断 Error 是否为NotFoundError, 是的话则进行前端服务的转发，重新修改writer
 			if errors.Is(err, NotFoundErr) {
-				httputil.NewSingleHostReverseProxy(backend).ServeHTTP(writer, request)
+				httputil.NewSingleHostReverseProxy(frontend).ServeHTTP(writer, request)
 			}
 		}}
 }
