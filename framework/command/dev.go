@@ -207,7 +207,7 @@ func (p *Proxy) restartFrontend() error {
 }
 
 // 重启后端服务, 如果frontend为nil，则没有包含后端
-func (p *Proxy) restartProxy(startFrontend, startBackend bool) error {
+func (p *Proxy) startProxy(startFrontend, startBackend bool) error {
 	var backendURL, frontendURL *url.URL
 	var err error
 
@@ -331,7 +331,7 @@ var devBackendCommand = &cobra.Command{
 	RunE: func(c *cobra.Command, args []string) error {
 		proxy := NewProxy(c.GetContainer())
 		go proxy.monitorBackend()
-		if err := proxy.restartProxy(false, true); err != nil {
+		if err := proxy.startProxy(false, true); err != nil {
 			return err
 		}
 		return nil
@@ -346,7 +346,7 @@ var devFrontendCommand = &cobra.Command{
 
 		// 启动前端服务
 		proxy := NewProxy(c.GetContainer())
-		return proxy.restartProxy(true, false)
+		return proxy.startProxy(true, false)
 
 	},
 }
@@ -357,7 +357,7 @@ var devAllCommand = &cobra.Command{
 	RunE: func(c *cobra.Command, args []string) error {
 		proxy := NewProxy(c.GetContainer())
 		go proxy.monitorBackend()
-		if err := proxy.restartProxy(true, true); err != nil {
+		if err := proxy.startProxy(true, true); err != nil {
 			return err
 		}
 		return nil
