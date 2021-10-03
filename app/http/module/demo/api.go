@@ -2,7 +2,6 @@ package demo
 
 import (
 	demoService "github.com/gohade/hade/app/provider/demo"
-	"github.com/gohade/hade/framework/contract"
 	"github.com/gohade/hade/framework/gin"
 )
 
@@ -33,8 +32,8 @@ func NewDemoApi() *DemoApi {
 // @Success 200 array []UserDTO
 // @Router /demo/demo [get]
 func (api *DemoApi) Demo(c *gin.Context) {
-	configService := c.MustMake(contract.ConfigKey).(contract.Config)
-	password := configService.GetString("database.mysql.password")
+	//configService := c.MustMake(contract.ConfigKey).(contract.Config)
+	//password := configService.GetString("database.mysql.password")
 
 	logger := c.MustMakeLog()
 	logger.Info(c, "demo test error", map[string]interface{}{
@@ -42,7 +41,7 @@ func (api *DemoApi) Demo(c *gin.Context) {
 		"user": "jianfengye",
 	})
 
-	c.JSON(200, password)
+	c.JSON(200, "11123456235")
 }
 
 // Demo godoc

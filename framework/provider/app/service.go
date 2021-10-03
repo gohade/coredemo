@@ -140,3 +140,11 @@ func (app *HadeApp) LoadAppConfig(kv map[string]string) {
 		app.configMap[key] = val
 	}
 }
+
+// AppFolder 代表app目录
+func (app *HadeApp) AppFolder() string {
+	if val, ok := app.configMap["app_folder"]; ok {
+		return val
+	}
+	return filepath.Join(app.BaseFolder(), "app")
+}
