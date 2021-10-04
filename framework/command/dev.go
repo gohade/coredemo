@@ -74,7 +74,7 @@ func initDevConfig(c framework.Container) *devConfig {
 	return devConfig
 }
 
-// Proxy 代表serve启动的backend的服务器代理
+// Proxy 代表serve启动的服务器代理
 type Proxy struct {
 	devConfig   *devConfig   // 配置文件
 	proxyServer *http.Server // proxy的服务
