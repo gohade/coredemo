@@ -32,16 +32,7 @@ func NewDemoApi() *DemoApi {
 // @Success 200 array []UserDTO
 // @Router /demo/demo [get]
 func (api *DemoApi) Demo(c *gin.Context) {
-	//configService := c.MustMake(contract.ConfigKey).(contract.Config)
-	//password := configService.GetString("database.mysql.password")
-
-	logger := c.MustMakeLog()
-	logger.Info(c, "demo test error", map[string]interface{}{
-		"api":  "demo/demo",
-		"user": "jianfengye",
-	})
-
-	c.JSON(200, "111234562352212")
+	c.JSON(200, "this is demo for dev all")
 }
 
 // Demo godoc

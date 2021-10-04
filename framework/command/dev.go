@@ -35,6 +35,7 @@ type devConfig struct {
 
 // 初始化配置文件
 func initDevConfig(c framework.Container) *devConfig {
+	// 设置默认值
 	devConfig := &devConfig{
 		Port: "8087",
 		Backend: struct {
@@ -52,7 +53,10 @@ func initDevConfig(c framework.Container) *devConfig {
 			"8071",
 		},
 	}
+	// 容器中获取配置服务
 	configer := c.MustMake(contract.ConfigKey).(contract.Config)
+
+	// 每个配置项进行检查
 	if configer.IsExist("app.dev.port") {
 		devConfig.Port = configer.GetString("app.dev.port")
 	}
@@ -62,6 +66,8 @@ func initDevConfig(c framework.Container) *devConfig {
 	if configer.IsExist("app.dev.backend.port") {
 		devConfig.Backend.Port = configer.GetString("app.dev.backend.port")
 	}
+
+	// monitorFolder 默认使用目录服务的AppFolder()
 	monitorFolder := configer.GetString("app.dev.backend.monitor_folder")
 	if monitorFolder == "" {
 		appService := c.MustMake(contract.AppKey).(contract.App)
@@ -76,10 +82,9 @@ func initDevConfig(c framework.Container) *devConfig {
 
 // Proxy 代表serve启动的服务器代理
 type Proxy struct {
-	devConfig   *devConfig   // 配置文件
-	proxyServer *http.Server // proxy的服务
-	backendPid  int          // 当前的backend服务的pid
-	frontendPid int          // 当前的frontend服务的pid
+	devConfig   *devConfig // 配置文件
+	backendPid  int        // 当前的backend服务的pid
+	frontendPid int        // 当前的frontend服务的pid
 }
 
 // NewProxy 初始化一个Proxy
@@ -110,8 +115,13 @@ func (p *Proxy) newProxyReverseProxy(frontend, backend *url.URL) *httputil.Rever
 	// 两个都有进程
 	// 先创建一个后端服务的directory
 	director := func(req *http.Request) {
-		req.URL.Scheme = backend.Scheme
-		req.URL.Host = backend.Host
+		if req.URL.Path == "/" || req.URL.Path == "/app.js" {
+			req.URL.Scheme = frontend.Scheme
+			req.URL.Host = frontend.Host
+		} else {
+			req.URL.Scheme = backend.Scheme
+			req.URL.Host = backend.Host
+		}
 	}
 
 	// 定义一个NotFoundErr
@@ -177,9 +187,10 @@ func (p *Proxy) restartBackend() error {
 // 启动前端服务
 func (p *Proxy) restartFrontend() error {
 	// 启动前端调试模式
-	// 如果已经开启了npm run serve， 什么都不做
+	// 先杀死旧进程
 	if p.frontendPid != 0 {
-		return nil
+		syscall.Kill(p.frontendPid, syscall.SIGKILL)
+		p.frontendPid = 0
 	}
 
 	// 否则开启npm run serve
@@ -206,7 +217,7 @@ func (p *Proxy) restartFrontend() error {
 	return nil
 }
 
-// 重启后端服务, 如果frontend为nil，则没有包含后端
+// 启动proxy服务，并且根据参数启动前端服务或者后端服务
 func (p *Proxy) startProxy(startFrontend, startBackend bool) error {
 	var backendURL, frontendURL *url.URL
 	var err error
@@ -224,11 +235,6 @@ func (p *Proxy) startProxy(startFrontend, startBackend bool) error {
 		}
 	}
 
-	// 如果已经启动过proxy了，就不要进行设置了
-	if p.proxyServer != nil {
-		return nil
-	}
-
 	if frontendURL, err = url.Parse(fmt.Sprintf("%s%s", "http://127.0.0.1:", p.devConfig.Frontend.Port)); err != nil {
 		return err
 	}
@@ -239,14 +245,14 @@ func (p *Proxy) startProxy(startFrontend, startBackend bool) error {
 
 	// 设置反向代理
 	proxyReverse := p.newProxyReverseProxy(frontendURL, backendURL)
-	p.proxyServer = &http.Server{
+	proxyServer := &http.Server{
 		Addr:    "127.0.0.1:" + p.devConfig.Port,
 		Handler: proxyReverse,
 	}
 
-	fmt.Println("代理服务启动:", "http://"+p.proxyServer.Addr)
+	fmt.Println("代理服务启动:", "http://"+proxyServer.Addr)
 	// 启动proxy服务
-	err = p.proxyServer.ListenAndServe()
+	err = proxyServer.ListenAndServe()
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -262,24 +268,31 @@ func (p *Proxy) monitorBackend() error {
 	}
 	defer watcher.Close()
 
+	// 开启监听目标文件夹
 	appFolder := p.devConfig.Backend.MonitorFolder
 	fmt.Println("监控文件夹：", appFolder)
+	// 监听所有子目录，需要使用filepath.walk
 	filepath.Walk(appFolder, func(path string, info os.FileInfo, err error) error {
 		if info != nil && !info.IsDir() {
 			return nil
 		}
+		// 如果是隐藏的目录比如 . 或者 .. 则不用进行监控
 		if util.IsHiddenDirectory(path) {
 			return nil
 		}
 		return watcher.Add(path)
 	})
 
+	// 开启计时时间机制
 	refreshTime := p.devConfig.Backend.RefreshTime
 	t := time.NewTimer(time.Duration(refreshTime) * time.Second)
+	// 先停止计时器
 	t.Stop()
 	for {
 		select {
 		case <-t.C:
+			// 计时器时间到了，代表之前有文件更新事件重置过计时器
+			// 即有文件更新
 			fmt.Println("...检测到文件更新，重启服务开始...")
 			if err := p.rebuildBackend(); err != nil {
 				fmt.Println("重新编译失败：", err.Error())
@@ -289,21 +302,23 @@ func (p *Proxy) monitorBackend() error {
 				}
 			}
 			fmt.Println("...检测到文件更新，重启服务结束...")
+			// 停止计时器
 			t.Stop()
 		case _, ok := <-watcher.Events:
 			if !ok {
 				continue
 			}
+			// 有文件更新事件，重置计时器
 			t.Reset(time.Duration(refreshTime) * time.Second)
 		case err, ok := <-watcher.Errors:
 			if !ok {
 				continue
 			}
+			// 如果有文件监听错误，则停止计时器
 			fmt.Println("监听文件夹错误：", err.Error())
 			t.Reset(time.Duration(refreshTime) * time.Second)
 		}
 	}
-	return nil
 }
 
 // 初始化Dev命令

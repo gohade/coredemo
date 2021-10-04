@@ -12,11 +12,12 @@ import (
 	"time"
 )
 
+// app启动地址
 var appAddress = ""
 
 // initAppCommand 初始化app命令和其子命令
 func initAppCommand() *cobra.Command {
-	appStartCommand.Flags().StringVar(&appAddress, "address", "", "set app address")
+	appStartCommand.Flags().StringVar(&appAddress, "address", ":8888", "设置app启动的地址，默认为:8888")
 
 	appCommand.AddCommand(appStartCommand)
 	return appCommand

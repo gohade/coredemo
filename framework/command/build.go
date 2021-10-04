@@ -34,7 +34,7 @@ var buildSelfCommand = &cobra.Command{
 	RunE: func(c *cobra.Command, args []string) error {
 		path, err := exec.LookPath("go")
 		if err != nil {
-			log.Fatalln("hade go: please install go in path first")
+			log.Fatalln("hade go: 请在Path路径中先安装go")
 		}
 
 		cmd := exec.Command(path, "build", "-o", "hade", "./")
@@ -45,7 +45,7 @@ var buildSelfCommand = &cobra.Command{
 			fmt.Println("--------------")
 			return err
 		}
-		fmt.Println("build success please run ./hade direct")
+		fmt.Println("编译hade成功")
 		return nil
 	},
 }
