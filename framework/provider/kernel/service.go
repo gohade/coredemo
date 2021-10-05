@@ -2,6 +2,7 @@ package kernel
 
 import (
 	"github.com/gohade/hade/framework/gin"
+	"net/http"
 )
 
 // 引擎服务
@@ -16,6 +17,6 @@ func NewHadeKernelService(params ...interface{}) (interface{}, error) {
 }
 
 // 返回web引擎
-func (s *HadeKernelService) HttpEngine() *gin.Engine {
+func (s *HadeKernelService) HttpEngine() http.Handler {
 	return s.engine
 }
