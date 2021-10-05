@@ -4,6 +4,7 @@ import (
 	"flag"
 	"github.com/gohade/hade/framework"
 	"github.com/gohade/hade/framework/util"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"path/filepath"
 )
@@ -12,6 +13,7 @@ import (
 type HadeApp struct {
 	container  framework.Container // 服务容器
 	baseFolder string              // 基础路径
+	appId      string              // 表示当前这个app的唯一id, 可以用于分布式锁等
 }
 
 // Version 实现版本
@@ -90,5 +92,11 @@ func NewHadeApp(params ...interface{}) (interface{}, error) {
 		flag.StringVar(&baseFolder, "base_folder", "", "base_folder参数, 默认为当前路径")
 		flag.Parse()
 	}
-	return &HadeApp{baseFolder: baseFolder, container: container}, nil
+	appId := uuid.New().String()
+	return &HadeApp{baseFolder: baseFolder, container: container, appId: appId}, nil
+}
+
+// AppID 表示这个App的唯一ID
+func (h HadeApp) AppID() string {
+	return h.appId
 }
