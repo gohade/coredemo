@@ -156,3 +156,14 @@ func (hade *HadeContainer) make(key string, params []interface{}, forceNew bool)
 	hade.instances[key] = inst
 	return inst, nil
 }
+
+func (hade *HadeContainer) PrintList() []string {
+	ret := []string{}
+	for _, provider := range hade.providers {
+		name := provider.Name()
+
+		line := fmt.Sprint(name)
+		ret = append(ret, line)
+	}
+	return ret
+}
