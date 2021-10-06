@@ -6,10 +6,13 @@ import (
 	"fmt"
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/google/go-github/v39/github"
+	"github.com/spf13/cast"
 	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
+	"time"
 
 	"github.com/gohade/hade/framework/cobra"
 	"github.com/gohade/hade/framework/util"
@@ -46,7 +49,7 @@ var newCommand = &cobra.Command{
 			if util.Exists(folder) {
 				isForce := false
 				prompt2 := &survey.Confirm{
-					Message: "目录" + name + "已经存在,是否删除重新创建？",
+					Message: "目录" + folder + "已经存在,是否删除重新创建？(确认后立刻执行删除操作！)",
 					Default: false,
 				}
 				err := survey.AskOne(prompt2, &isForce)
@@ -55,7 +58,9 @@ var newCommand = &cobra.Command{
 				}
 
 				if isForce {
-					os.RemoveAll(folder)
+					if err := os.RemoveAll(folder); err != nil {
+						return err
+					}
 				} else {
 					fmt.Println("目录已存在，创建应用失败")
 					return nil
@@ -77,63 +82,77 @@ var newCommand = &cobra.Command{
 		{
 			// 获取hade的版本
 			client := github.NewClient(nil)
-			opt := &github.ListOptions{Page: 0, PerPage: 10}
-			releases, _, err := client.Repositories.ListReleases(context.Background(), "gohade", "hade", opt)
-			if err != nil {
-				return err
-			}
-
 			prompt := &survey.Input{
 				Message: "请输入版本名称(参考 https://github.com/gohade/hade/releases，默认为最新版本)：",
 			}
-			err = survey.AskOne(prompt, &version)
+			err := survey.AskOne(prompt, &version)
 			if err != nil {
 				return err
 			}
 			if version != "" {
 				// 确认版本是否正确
 				release, _, err = client.Repositories.GetReleaseByTag(context.Background(), "gohade", "hade", version)
-				if err != nil {
-					return err
-				}
-				if release == nil {
+				if err != nil || release == nil {
 					fmt.Println("版本不存在，创建应用失败，请参考 https://github.com/gohade/hade/releases")
 					return nil
 				}
 			}
 			if version == "" {
-				version = releases[0].GetTagName()
-				release = releases[0]
+				release, _, err = client.Repositories.GetLatestRelease(context.Background(), "gohade", "hade")
+				version = release.GetTagName()
 			}
 		}
+		fmt.Println("====================================================")
+		fmt.Println("开始进行创建应用操作")
+		fmt.Println("创建目录：", folder)
+		fmt.Println("应用名称：", mod)
+		fmt.Println("hade框架版本：", release.GetTagName())
+
+		templateFolder := filepath.Join(currentPath, "template-hade-"+version+"-"+cast.ToString(time.Now().Unix()))
+		os.Mkdir(templateFolder, os.ModePerm)
+		fmt.Println("创建临时目录", templateFolder)
 
 		// 拷贝template项目
 		url := release.GetZipballURL()
-		err := util.DownloadFile("template-main.zip", url)
+		err := util.DownloadFile(filepath.Join(templateFolder, "template.zip"), url)
+		if err != nil {
+			return err
+		}
+		fmt.Println("下载zip包到template.zip")
+
+		_, err = util.Unzip(filepath.Join(templateFolder, "template.zip"), templateFolder)
 		if err != nil {
 			return err
 		}
 
-		_, err = util.Unzip("template-main.zip", currentPath)
+		// 获取folder下的gohade-hade-xxx相关解压目录
+		fInfos, err := ioutil.ReadDir(templateFolder)
 		if err != nil {
 			return err
 		}
+		for _, fInfo := range fInfos {
+			// 找到解压后的文件夹
+			if fInfo.IsDir() && strings.Contains(fInfo.Name(), "gohade-hade-") {
+				if err := os.Rename(filepath.Join(templateFolder, fInfo.Name()), folder); err != nil {
+					return err
+				}
+			}
+		}
+		fmt.Println("解压zip包")
 
-		if err := os.Rename(filepath.Join(currentPath, "/template-main"), folder); err != nil {
+		if err := os.RemoveAll(templateFolder); err != nil {
 			return err
 		}
+		fmt.Println("删除临时文件夹", templateFolder)
 
-		if err := os.Remove("template-main.zip"); err != nil {
-			return err
-		}
-		fmt.Println("remove " + path.Join(folder, ".git"))
 		os.RemoveAll(path.Join(folder, ".git"))
+		fmt.Println("删除.git目录")
 
 		// 删除framework 目录
 		os.RemoveAll(path.Join(folder, "framework"))
+		fmt.Println("删除framework目录")
 
 		filepath.Walk(folder, func(path string, info os.FileInfo, err error) error {
-			fmt.Println("read file:" + path)
 			if info.IsDir() {
 				return nil
 			}
@@ -146,11 +165,17 @@ var newCommand = &cobra.Command{
 			if path == filepath.Join(folder, "go.mod") {
 				fmt.Println("更新文件:" + path)
 				c = bytes.ReplaceAll(c, []byte("module github.com/gohade/hade"), []byte("module "+mod))
+				c = bytes.ReplaceAll(c, []byte("require ("), []byte("require (\n\tgithub.com/gohade/hade "+version))
+				err = ioutil.WriteFile(path, c, 0644)
+				if err != nil {
+					return err
+				}
+				return nil
 			}
 
 			isContain := bytes.Contains(c, []byte("github.com/gohade/hade/app"))
 			if isContain {
-				fmt.Println("update file:" + path)
+				fmt.Println("更新文件:" + path)
 				c = bytes.ReplaceAll(c, []byte("github.com/gohade/hade/app"), []byte(mod+"/app"))
 				err = ioutil.WriteFile(path, c, 0644)
 				if err != nil {
@@ -160,6 +185,9 @@ var newCommand = &cobra.Command{
 
 			return nil
 		})
+		fmt.Println("创建应用结束")
+		fmt.Println("目录：", folder)
+		fmt.Println("====================================================")
 		return nil
 	},
 }
