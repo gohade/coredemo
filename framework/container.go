@@ -157,13 +157,12 @@ func (hade *HadeContainer) make(key string, params []interface{}, forceNew bool)
 	return inst, nil
 }
 
-func (hade *HadeContainer) PrintList() []string {
+// NameList 列出容器中所有服务提供者的字符串凭证
+func (hade *HadeContainer) NameList() []string {
 	ret := []string{}
 	for _, provider := range hade.providers {
 		name := provider.Name()
-
-		line := fmt.Sprint(name)
-		ret = append(ret, line)
+		ret = append(ret, name)
 	}
 	return ret
 }

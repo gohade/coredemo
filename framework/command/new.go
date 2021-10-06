@@ -2,7 +2,10 @@ package command
 
 import (
 	"bytes"
+	"context"
 	"fmt"
+	"github.com/AlecAivazis/survey/v2"
+	"github.com/google/go-github/v39/github"
 	"io/ioutil"
 	"os"
 	"path"
@@ -10,46 +13,102 @@ import (
 
 	"github.com/gohade/hade/framework/cobra"
 	"github.com/gohade/hade/framework/util"
-
-	"github.com/pkg/errors"
 )
 
-var newForce bool
-var newGoMod string
-
+// new相关的名称
 func initNewCommand() *cobra.Command {
-	newCommand.Flags().BoolVarP(&newForce, "force", "f", false, "if app exist, overwrite app, default: false")
-	newCommand.Flags().StringVarP(&newGoMod, "mod", "m", "", "go mod name, default: folder name")
 	return newCommand
 }
 
+// 创建一个新应用
 var newCommand = &cobra.Command{
-	Use:     "new [folder]",
+	Use:     "new",
 	Aliases: []string{"create", "init"},
-	Short:   "create a new app",
+	Short:   "创建一个新的应用",
 	RunE: func(c *cobra.Command, args []string) error {
-		if len(args) == 0 {
-			return errors.New("参数错误")
-		}
-		name := args[0]
-
 		currentPath := util.GetExecDirectory()
 
-		folder := filepath.Join(currentPath, name)
-		if util.Exists(folder) {
-			if newForce {
-				os.RemoveAll(folder)
-			} else {
-				return errors.New("app has exist, please delete first")
+		var name string
+		var folder string
+		var mod string
+		var version string
+		var release *github.RepositoryRelease
+		{
+			prompt := &survey.Input{
+				Message: "请输入目录名称：",
+			}
+			err := survey.AskOne(prompt, &name)
+			if err != nil {
+				return err
+			}
+
+			folder = filepath.Join(currentPath, name)
+			if util.Exists(folder) {
+				isForce := false
+				prompt2 := &survey.Confirm{
+					Message: "目录" + name + "已经存在,是否删除重新创建？",
+					Default: false,
+				}
+				err := survey.AskOne(prompt2, &isForce)
+				if err != nil {
+					return err
+				}
+
+				if isForce {
+					os.RemoveAll(folder)
+				} else {
+					fmt.Println("目录已存在，创建应用失败")
+					return nil
+				}
+			}
+		}
+		{
+			prompt := &survey.Input{
+				Message: "请输入模块名称(go.mod中的module, 默认为文件夹名称)：",
+			}
+			err := survey.AskOne(prompt, &mod)
+			if err != nil {
+				return err
+			}
+			if mod == "" {
+				mod = name
+			}
+		}
+		{
+			// 获取hade的版本
+			client := github.NewClient(nil)
+			opt := &github.ListOptions{Page: 0, PerPage: 10}
+			releases, _, err := client.Repositories.ListReleases(context.Background(), "gohade", "hade", opt)
+			if err != nil {
+				return err
+			}
+
+			prompt := &survey.Input{
+				Message: "请输入版本名称(参考 https://github.com/gohade/hade/releases，默认为最新版本)：",
+			}
+			err = survey.AskOne(prompt, &version)
+			if err != nil {
+				return err
+			}
+			if version != "" {
+				// 确认版本是否正确
+				release, _, err = client.Repositories.GetReleaseByTag(context.Background(), "gohade", "hade", version)
+				if err != nil {
+					return err
+				}
+				if release == nil {
+					fmt.Println("版本不存在，创建应用失败，请参考 https://github.com/gohade/hade/releases")
+					return nil
+				}
+			}
+			if version == "" {
+				version = releases[0].GetTagName()
+				release = releases[0]
 			}
 		}
 
-		if newGoMod == "" {
-			newGoMod = name
-		}
-
 		// 拷贝template项目
-		url := "https://github.com/gohade/template/archive/main.zip"
+		url := release.GetZipballURL()
 		err := util.DownloadFile("template-main.zip", url)
 		if err != nil {
 			return err
@@ -60,7 +119,6 @@ var newCommand = &cobra.Command{
 			return err
 		}
 
-		// TODO: check do not use tmp file
 		if err := os.Rename(filepath.Join(currentPath, "/template-main"), folder); err != nil {
 			return err
 		}
@@ -70,6 +128,9 @@ var newCommand = &cobra.Command{
 		}
 		fmt.Println("remove " + path.Join(folder, ".git"))
 		os.RemoveAll(path.Join(folder, ".git"))
+
+		// 删除framework 目录
+		os.RemoveAll(path.Join(folder, "framework"))
 
 		filepath.Walk(folder, func(path string, info os.FileInfo, err error) error {
 			fmt.Println("read file:" + path)
@@ -81,10 +142,16 @@ var newCommand = &cobra.Command{
 			if err != nil {
 				return err
 			}
-			isContain := bytes.Contains(c, []byte("{{hade_project_name}}"))
+
+			if path == filepath.Join(folder, "go.mod") {
+				fmt.Println("更新文件:" + path)
+				c = bytes.ReplaceAll(c, []byte("module github.com/gohade/hade"), []byte("module "+mod))
+			}
+
+			isContain := bytes.Contains(c, []byte("github.com/gohade/hade/app"))
 			if isContain {
 				fmt.Println("update file:" + path)
-				c = bytes.ReplaceAll(c, []byte("{{hade_project_name}}"), []byte(newGoMod))
+				c = bytes.ReplaceAll(c, []byte("github.com/gohade/hade/app"), []byte(mod+"/app"))
 				err = ioutil.WriteFile(path, c, 0644)
 				if err != nil {
 					return err
