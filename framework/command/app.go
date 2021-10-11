@@ -21,12 +21,12 @@ import (
 
 // app启动地址
 var appAddress = ""
-var appDeamon = false
+var appDaemon = false
 
 // initAppCommand 初始化app命令和其子命令
 func initAppCommand() *cobra.Command {
-	appStartCommand.Flags().BoolVarP(&appDeamon, "deamon", "d", false, "start app deamon")
-	appStartCommand.Flags().StringVar(&appAddress, "address", ":8888", "设置app启动的地址，默认为:8888")
+	appStartCommand.Flags().BoolVarP(&appDaemon, "daemon", "d", false, "start app daemon")
+	appStartCommand.Flags().StringVar(&appAddress, "address", "", "设置app启动的地址，默认为:8888")
 
 	appCommand.AddCommand(appStartCommand)
 	appCommand.AddCommand(appRestartCommand)
@@ -62,7 +62,12 @@ func startAppServe(server *http.Server, c framework.Container) error {
 	<-quit
 
 	// 调用Server.Shutdown graceful结束
-	timeoutCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	closeWait := 5
+	configService := c.MustMake(contract.ConfigKey).(contract.Config)
+	if configService.IsExist("app.close_wait") {
+		closeWait = configService.GetInt("app.close_wait")
+	}
+	timeoutCtx, cancel := context.WithTimeout(context.Background(), time.Duration(closeWait)*time.Second)
 	defer cancel()
 
 	if err := server.Shutdown(timeoutCtx); err != nil {
@@ -83,6 +88,19 @@ var appStartCommand = &cobra.Command{
 		// 从kernel服务实例中获取引擎
 		core := kernelService.HttpEngine()
 
+		if appAddress == "" {
+			envService := container.MustMake(contract.EnvKey).(contract.Env)
+			if envService.Get("ADDRESS") != "" {
+				appAddress = envService.Get("ADDRESS")
+			} else {
+				configService := container.MustMake(contract.ConfigKey).(contract.Config)
+				if configService.IsExist("app.address") {
+					appAddress = configService.GetString("app.address")
+				} else {
+					appAddress = ":8888"
+				}
+			}
+		}
 		// 创建一个Server服务
 		server := &http.Server{
 			Handler: core,
@@ -93,18 +111,22 @@ var appStartCommand = &cobra.Command{
 
 		pidFolder := appService.RuntimeFolder()
 		if !util.Exists(pidFolder) {
-			os.MkdirAll(pidFolder, os.ModePerm)
+			if err := os.MkdirAll(pidFolder, os.ModePerm); err != nil {
+				return err
+			}
 		}
 		serverPidFile := filepath.Join(pidFolder, "app.pid")
 		logFolder := appService.LogFolder()
 		if !util.Exists(logFolder) {
-			os.MkdirAll(logFolder, os.ModePerm)
+			if err := os.MkdirAll(logFolder, os.ModePerm); err != nil {
+				return err
+			}
 		}
 		// 应用日志
 		serverLogFile := filepath.Join(logFolder, "app.log")
 		currentFolder := util.GetExecDirectory()
-		// deamon 模式
-		if appDeamon {
+		// daemon 模式
+		if appDaemon {
 			// 创建一个Context
 			cntxt := &daemon.Context{
 				// 设置pid文件
@@ -118,7 +140,7 @@ var appStartCommand = &cobra.Command{
 				// 设置所有设置文件的mask，默认为750
 				Umask: 027,
 				// 子进程的参数，按照这个参数设置，子进程的命令为 ./hade app start --daemon=true
-				Args: []string{"", "app", "start", "--deamon=true"},
+				Args: []string{"", "app", "start", "--daemon=true"},
 			}
 			// 启动子进程，d不为空表示当前是父进程，d为空表示当前是子进程
 			d, err := cntxt.Reborn()
@@ -198,7 +220,7 @@ var appRestartCommand = &cobra.Command{
 			}
 		}
 
-		appDeamon = true
+		appDaemon = true
 		// 直接deamon方式启动apps
 		return appStartCommand.RunE(c, args)
 	},
