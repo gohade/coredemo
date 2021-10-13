@@ -31,7 +31,7 @@ func main() {
 	container.Bind(&log.HadeLogServiceProvider{})
 
 	// 将HTTP引擎初始化,并且作为服务提供者绑定到服务容器中
-	if engine, err := http.NewHttpEngine(); err == nil {
+	if engine, err := http.NewHttpEngine(container); err == nil {
 		container.Bind(&kernel.HadeKernelProvider{HttpEngine: engine})
 	}
 
