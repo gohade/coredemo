@@ -26,7 +26,7 @@ func NewCore() *Core {
 
 // 注册中间件
 func (c *Core) Use(middlewares ...ControllerHandler) {
-	c.middlewares = middlewares
+	c.middlewares = append(c.middlewares, middlewares...)
 }
 
 // === http method wrap

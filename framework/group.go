@@ -89,5 +89,5 @@ func (g *Group) Group(uri string) IGroup {
 
 // 注册中间件
 func (g *Group) Use(middlewares ...ControllerHandler) {
-	g.middlewares = middlewares
+	g.middlewares = append(g.middlewares, middlewares...)
 }
