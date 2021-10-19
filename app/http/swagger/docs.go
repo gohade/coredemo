@@ -59,7 +59,7 @@ var doc = `{
         },
         "/demo/demo2": {
             "get": {
-                "description": "获取所有学生",
+                "description": "获取所有学生,不进行分页",
                 "produces": [
                     "application/json"
                 ],
@@ -73,10 +73,7 @@ var doc = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/definitions/demo.UserDTO"
-                                }
+                                "$ref": "#/definitions/demo.UserDTO"
                             }
                         }
                     }

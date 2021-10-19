@@ -35,12 +35,12 @@ func (api *DemoApi) Demo(c *gin.Context) {
 	c.JSON(200, "this is demo for dev all")
 }
 
-// Demo godoc
+// Demo2  for godoc
 // @Summary 获取所有学生
-// @Description 获取所有学生
+// @Description 获取所有学生,不进行分页
 // @Produce  json
 // @Tags demo
-// @Success 200 array []UserDTO
+// @Success 200 {array} UserDTO
 // @Router /demo/demo2 [get]
 func (api *DemoApi) Demo2(c *gin.Context) {
 	demoProvider := c.MustMake(demoService.DemoKey).(demoService.IService)
