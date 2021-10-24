@@ -1,7 +1,6 @@
 package contract
 
 import (
-	"github.com/gohade/hade/framework/provider/orm"
 	"gorm.io/gorm"
 )
 
@@ -10,5 +9,8 @@ const ORMKey = "hade:orm"
 
 // ORMService 表示传入的参数
 type ORMService interface {
-	GetDB(option ...orm.DBOption) (*gorm.DB, error)
+	GetDB(option ...DBOption) (*gorm.DB, error)
 }
+
+// DBOption 代表初始化的时候的选项
+type DBOption func(orm ORMService)
