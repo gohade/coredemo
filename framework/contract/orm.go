@@ -39,6 +39,7 @@ type DBConfig struct {
 	ConnMaxIdle     int    `yaml:"conn_max_idle"`
 	ConnMaxOpen     int    `yaml:"conn_max_open"`
 	ConnMaxLifetime string `yaml:"conn_max_lifetime"`
+	ConnMaxIdletime string `yaml:"conn_max_idletime"`
 
 	GormConfig *gorm.Config
 }
