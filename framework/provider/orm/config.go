@@ -2,39 +2,15 @@ package orm
 
 import (
 	"context"
-	"github.com/go-sql-driver/mysql"
 	"github.com/gohade/hade/framework"
 	"github.com/gohade/hade/framework/contract"
-	"net"
-	"strconv"
-	"time"
+	"gorm.io/gorm"
 )
 
-type Config struct {
-	WriteTimeout    string `yaml:"write_timeout"`
-	Loc             string `yaml:"loc"`
-	Port            int    `yaml:"port"`
-	ReadTimeout     string `yaml:"read_timeout"`
-	Charset         string `yaml:"charset"`
-	ParseTime       bool   `yaml:"parse_time"`
-	Protocol        string `yaml:"protocol"`
-	Dsn             string `yaml:"dsn"`
-	Database        string `yaml:"database"`
-	Collation       string `yaml:"collation"`
-	Timeout         string `yaml:"timeout"`
-	Username        string `yaml:"username"`
-	Password        string `yaml:"password"`
-	Driver          string `yaml:"driver"`
-	Host            string `yaml:"host"`
-	ConnMaxIdle     int    `yaml:"conn_max_idle"`
-	ConnMaxOpen     int    `yaml:"conn_max_open"`
-	ConnMaxLifetime string `yaml:"conn_max_lifetime"`
-}
-
-func GetBaseConfig(c framework.Container) *Config {
+func GetBaseConfig(c framework.Container) *contract.DBConfig {
 	configService := c.MustMake(contract.ConfigKey).(contract.Config)
 	logService := c.MustMake(contract.LogKey).(contract.Log)
-	config := &Config{}
+	config := &contract.DBConfig{}
 	err := configService.Load("database", config)
 	if err != nil {
 		logService.Error(context.Background(), "parse database config error", nil)
@@ -43,37 +19,24 @@ func GetBaseConfig(c framework.Container) *Config {
 	return config
 }
 
-// FormatDsn 生成dsn
-func (conf *Config) FormatDsn() (string, error) {
-	port := strconv.Itoa(conf.Port)
-	timeout, err := time.ParseDuration(conf.Timeout)
-	if err != nil {
-		return "", err
+// WithConfigPath 加载配置文件地址
+func WithConfigPath(configPath string) contract.DBOption {
+	return func(container framework.Container, config *contract.DBConfig) error {
+		configService := container.MustMake(contract.ConfigKey).(contract.Config)
+		if err := configService.Load(configPath, config); err != nil {
+			return err
+		}
+		return nil
 	}
-	readTimeout, err := time.ParseDuration(conf.ReadTimeout)
-	if err != nil {
-		return "", err
+}
+
+// WithGormConfig 表示自行配置Gorm的配置信息
+func WithGormConfig(gormConfig *gorm.Config) contract.DBOption {
+	return func(container framework.Container, config *contract.DBConfig) error {
+		if gormConfig.Logger == nil {
+			gormConfig.Logger = config.GormConfig.Logger
+		}
+		config.GormConfig = gormConfig
+		return nil
 	}
-	writeTimeout, err := time.ParseDuration(conf.WriteTimeout)
-	if err != nil {
-		return "", err
-	}
-	location, err := time.LoadLocation(conf.Loc)
-	if err != nil {
-		return "", err
-	}
-	driverConf := &mysql.Config{
-		User:         conf.Username,
-		Passwd:       conf.Password,
-		Net:          conf.Protocol,
-		Addr:         net.JoinHostPort(conf.Host, port),
-		DBName:       conf.Database,
-		Collation:    conf.Collation,
-		Loc:          location,
-		Timeout:      timeout,
-		ReadTimeout:  readTimeout,
-		WriteTimeout: writeTimeout,
-		ParseTime:    conf.ParseTime,
-	}
-	return driverConf.FormatDSN(), nil
 }
