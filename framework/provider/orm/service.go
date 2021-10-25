@@ -17,7 +17,7 @@ import (
 // HadeApp 代表hade框架的App实现
 type HadeGorm struct {
 	container framework.Container // 服务容器
-	dbs       map[string]*gorm.DB // 容器服务,key为dsn
+	dbs       map[string]*gorm.DB // key为dsn, value为gorm.DB（连接池）
 
 	lock *sync.RWMutex
 }
