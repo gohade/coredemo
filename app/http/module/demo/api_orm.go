@@ -5,7 +5,6 @@ import (
 	"github.com/gohade/hade/framework/contract"
 	"github.com/gohade/hade/framework/gin"
 	"github.com/gohade/hade/framework/provider/orm"
-	"gorm.io/gorm"
 	"time"
 )
 
@@ -13,9 +12,7 @@ func (api *DemoApi) DemoOrm(c *gin.Context) {
 	logger := c.MustMakeLog()
 	logger.Info(c, "request start", nil)
 	gormService := c.MustMake(contract.ORMKey).(contract.ORMService)
-	db, err := gormService.GetDB(orm.WithConfigPath("database.default"), orm.WithGormConfig(&gorm.Config{
-		DryRun: true,
-	}))
+	db, err := gormService.GetDB(orm.WithConfigPath("database.default"), orm.WithDryRun())
 	if err != nil {
 		logger.Error(c, err.Error(), nil)
 		c.AbortWithError(50001, err)

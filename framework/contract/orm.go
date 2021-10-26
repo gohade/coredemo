@@ -20,28 +20,33 @@ type ORMService interface {
 // DBOption 代表初始化的时候的选项
 type DBOption func(container framework.Container, config *DBConfig) error
 
+// DBConfig 代表数据库连接的所有配置
 type DBConfig struct {
-	WriteTimeout    string `yaml:"write_timeout"`
-	Loc             string `yaml:"loc"`
-	Port            int    `yaml:"port"`
-	ReadTimeout     string `yaml:"read_timeout"`
-	Charset         string `yaml:"charset"`
-	ParseTime       bool   `yaml:"parse_time"`
-	Protocol        string `yaml:"protocol"`
-	Dsn             string `yaml:"dsn"`
-	Database        string `yaml:"database"`
-	Collation       string `yaml:"collation"`
-	Timeout         string `yaml:"timeout"`
-	Username        string `yaml:"username"`
-	Password        string `yaml:"password"`
-	Driver          string `yaml:"driver"`
-	Host            string `yaml:"host"`
-	ConnMaxIdle     int    `yaml:"conn_max_idle"`
-	ConnMaxOpen     int    `yaml:"conn_max_open"`
-	ConnMaxLifetime string `yaml:"conn_max_lifetime"`
-	ConnMaxIdletime string `yaml:"conn_max_idletime"`
+	// 以下配置关于dsn
+	WriteTimeout string `yaml:"write_timeout"` // 写超时时间
+	Loc          string `yaml:"loc"`           // 时区
+	Port         int    `yaml:"port"`          // 端口
+	ReadTimeout  string `yaml:"read_timeout"`  // 读超时时间
+	Charset      string `yaml:"charset"`       // 字符集
+	ParseTime    bool   `yaml:"parse_time"`    // 是否解析时间
+	Protocol     string `yaml:"protocol"`      // 传输协议
+	Dsn          string `yaml:"dsn"`           // 直接传递dsn，如果传递了，其他关于dsn的配置均无效
+	Database     string `yaml:"database"`      // 数据库
+	Collation    string `yaml:"collation"`     // 字符序
+	Timeout      string `yaml:"timeout"`       // 连接超时时间
+	Username     string `yaml:"username"`      // 用户名
+	Password     string `yaml:"password"`      // 密码
+	Driver       string `yaml:"driver"`        // 驱动
+	Host         string `yaml:"host"`          // 数据库地址
 
-	GormConfig *gorm.Config
+	// 以下配置关于连接池
+	ConnMaxIdle     int    `yaml:"conn_max_idle"`     // 最大空闲连接数
+	ConnMaxOpen     int    `yaml:"conn_max_open"`     // 最大连接数
+	ConnMaxLifetime string `yaml:"conn_max_lifetime"` // 连接最大生命周期
+	ConnMaxIdletime string `yaml:"conn_max_idletime"` // 空闲最大生命周期
+
+	// 以下配置关于gorm
+	*gorm.Config // 集成gorm的配置
 }
 
 // FormatDsn 生成dsn
