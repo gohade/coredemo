@@ -1,3 +1,9 @@
+conn_max_idle: 10 # 通用配置，连接池最大空闲连接数
+conn_max_open: 100 # 通用配置，连接池最大连接数
+conn_max_lifetime: 1h # 通用配置，连接数最大生命周期
+protocol: tcp # 通用配置，传输协议
+loc: Local # 通用配置，时区
+
 default:
     driver: mysql # 连接驱动
     dsn: "" # dsn，如果设置了dsn, 以下的所有设置都不生效
