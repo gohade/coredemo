@@ -11,6 +11,7 @@ require (
 	github.com/gin-contrib/sse v0.1.0
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/go-playground/validator/v10 v10.4.1
+	github.com/go-redis/redis/v8 v8.11.4 // indirect
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-github/v39 v39.1.0
@@ -38,7 +39,7 @@ require (
 	github.com/swaggo/gin-swagger v1.3.2
 	github.com/swaggo/swag v1.7.3
 	github.com/ugorji/go/codec v1.1.7
-	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4
+	golang.org/x/net v0.0.0-20210428140749-89ef3d95e781
 	gopkg.in/yaml.v2 v2.4.0
 	gorm.io/driver/clickhouse v0.2.1
 	gorm.io/driver/mysql v1.1.2

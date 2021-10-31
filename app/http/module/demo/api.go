@@ -1,8 +1,8 @@
 package demo
 
 import (
-    demoService "github.com/gohade/hade/app/provider/demo"
-    "github.com/gohade/hade/framework/gin"
+	demoService "github.com/gohade/hade/app/provider/demo"
+	"github.com/gohade/hade/framework/gin"
 )
 
 type DemoApi struct {
@@ -17,6 +17,7 @@ func Register(r *gin.Engine) error {
 	r.GET("/demo/demo2", api.Demo2)
 	r.POST("/demo/demo_post", api.DemoPost)
 	r.GET("/demo/orm", api.DemoOrm)
+	r.GET("/demo/cache/redis", api.DemoRedis)
 	return nil
 }
 
