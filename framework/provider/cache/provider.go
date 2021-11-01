@@ -1,11 +1,11 @@
 package cache
 
 import (
-    "strings"
+	"strings"
 
-    "github.com/gohade/hade/framework"
-    "github.com/gohade/hade/framework/contract"
-    "github.com/gohade/hade/framework/provider/cache/services"
+	"github.com/gohade/hade/framework"
+	"github.com/gohade/hade/framework/contract"
+	"github.com/gohade/hade/framework/provider/cache/services"
 )
 
 // HadeCacheProvider 服务提供者
@@ -32,8 +32,6 @@ func (l *HadeCacheProvider) Register(c framework.Container) framework.NewInstanc
 	switch l.Driver {
 	case "redis":
 		return services.NewRedisCache
-	case "sqlite":
-		return services.NewSqliteCache
 	case "memory":
 		return services.NewMemoryCache
 	default:

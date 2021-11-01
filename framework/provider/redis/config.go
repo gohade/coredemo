@@ -13,7 +13,7 @@ import (
 func GetBaseConfig(c framework.Container) *contract.RedisConfig {
 	logService := c.MustMake(contract.LogKey).(contract.Log)
 	config := &contract.RedisConfig{Options: &redis.Options{}}
-	opt := WithConfigPath("cache")
+	opt := WithConfigPath("redis")
 	err := opt(c, config)
 	if err != nil {
 		// 直接使用logService来打印错误信息

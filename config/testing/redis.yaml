@@ -3,21 +3,9 @@ read_timeout: 2s # 读超时
 write_timeout: 2s # 写超时
 
 write:
-    host: localhost # ip地址
-    port: 6370 # 端口
+    host: 127.0.0.1 # ip地址
+    port: 6379 # 端口
     db: 0 #db
-    username: jianfengye # 用户名
-    password: "123456789" # 密码
-    timeout: 10s # 连接超时
-    read_timeout: 2s # 读超时
-    write_timeout: 2s # 写超时
-    
-read:
-    host: localhost # ip地址
-    port: 6370 # 端口
-    db: 0 #db
-    username: jianfengye # 用户名
-    password: "123456789" # 密码
     timeout: 10s # 连接超时
     read_timeout: 2s # 读超时
     write_timeout: 2s # 写超时

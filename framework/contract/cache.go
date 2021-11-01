@@ -13,7 +13,7 @@ type RememberFunc func(ctx context.Context, container framework.Container) (inte
 type CacheService interface {
 	Get(ctx context.Context, key string) (string, error)
 	GetObj(ctx context.Context, key string, model interface{}) error
-	Many(ctx context.Context, keys []string) (map[string]string, error)
+	GetMany(ctx context.Context, keys []string) (map[string]string, error)
 
 	Set(ctx context.Context, key string, val string, timeout time.Duration) error
 	SetObj(ctx context.Context, key string, val interface{}, timeout time.Duration) error
@@ -30,6 +30,6 @@ type CacheService interface {
 	Increment(ctx context.Context, key string) (int64, error)
 	Decrement(ctx context.Context, key string) (int64, error)
 
-	Delete(ctx context.Context, key string) error
-	DeleteMany(ctx context.Context, keys []string) error
+	Del(ctx context.Context, key string) error
+	DelMany(ctx context.Context, keys []string) error
 }
