@@ -126,7 +126,7 @@ func WithConfigPath(configPath string) contract.RedisOption {
 	}
 }
 
-// WithRedisConfig 表示自行配置Gorm的配置信息
+// WithRedisConfig 表示自行配置redis的配置信息
 func WithRedisConfig(f func(options *contract.RedisConfig)) contract.RedisOption {
 	return func(container framework.Container, config *contract.RedisConfig) error {
 		f(config)
