@@ -7,13 +7,3 @@ read_timeout: 2s # 读超时
 write_timeout: 2s # 写超时
 
 #driver: memory # 连接驱动
-
-#driver: sqlite
-#dsn: "" # dsn，如果设置了dsn, 以下的所有设置都不生效
-#host: localhost # ip地址
-#port: 3306 # 端口
-#database: coredemo # 数据库
-#username: jianfengye # 用户名
-#password: "123456789" # 密码
-#charset: utf8mb4 # 字符集
-#collation: utf8mb4_unicode_ci # 字符序

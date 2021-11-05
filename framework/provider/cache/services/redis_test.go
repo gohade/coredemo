@@ -101,12 +101,13 @@ func TestHadeRedisService_Load(t *testing.T) {
 
 		Convey("remember op", func() {
 			objNew := Bar{}
-			err = mc.Remember(ctx, "foo_remember", 1*time.Minute, func(ctx context.Context, container framework.Container) (interface{}, error) {
+			objNewFunc := func(ctx context.Context, container framework.Container) (interface{}, error) {
 				obj := &Bar{
 					Name: "bar",
 				}
 				return obj, nil
-			}, &objNew)
+			}
+			err = mc.Remember(ctx, "foo_remember", 1*time.Minute, objNewFunc, &objNew)
 			So(err, ShouldBeNil)
 			So(objNew.Name, ShouldEqual, "bar")
 		})

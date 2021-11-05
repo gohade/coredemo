@@ -25,7 +25,7 @@ func (l *HadeCacheProvider) Register(c framework.Container) framework.NewInstanc
 		}
 
 		cs := tcs.(contract.Config)
-		l.Driver = strings.ToLower(cs.GetString("log.Driver"))
+		l.Driver = strings.ToLower(cs.GetString("cache.driver"))
 	}
 
 	// 根据driver的配置项确定
