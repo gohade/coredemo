@@ -44,14 +44,7 @@ func NewRedisCache(params ...interface{}) (interface{}, error) {
 	return obj, nil
 }
 
-func (r *RedisCache) Get(ctx context.Context, key string) (string, error) {
-	val, err := r.client.Get(ctx, key).Result()
-	if errors.Is(err, redisv8.Nil) {
-		return val, ErrKeyNotFound
-	}
-	return val, err
-}
-
+// GetObj 获取某个key对应的对象, 对象必须实现 https://pkg.go.dev/encoding#BinaryUnMarshaler
 func (r *RedisCache) GetObj(ctx context.Context, key string, model interface{}) error {
 	cmd := r.client.Get(ctx, key)
 	if errors.Is(cmd.Err(), redisv8.Nil) {
@@ -65,6 +58,7 @@ func (r *RedisCache) GetObj(ctx context.Context, key string, model interface{}) 
 	return nil
 }
 
+// GetMany 获取某些key对应的值
 func (r *RedisCache) GetMany(ctx context.Context, keys []string) (map[string]string, error) {
 	pipeline := r.client.Pipeline()
 	vals := make(map[string]string)

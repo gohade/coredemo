@@ -12,7 +12,7 @@ func (api *DemoApi) DemoRedis(c *gin.Context) {
 	logger := c.MustMakeLog()
 	logger.Info(c, "request start", nil)
 
-	// 初始化一个orm.DB
+	// 初始化一个redis
 	redisService := c.MustMake(contract.RedisKey).(contract.RedisService)
 	client, err := redisService.GetClient(redis.WithConfigPath("cache.default"), redis.WithRedisConfig(func(options *contract.RedisConfig) {
 		options.MaxRetries = 3
@@ -39,15 +39,19 @@ func (api *DemoApi) DemoRedis(c *gin.Context) {
 	c.JSON(200, "ok")
 }
 
+// DemoCache cache的简单例子
 func (api *DemoApi) DemoCache(c *gin.Context) {
 	logger := c.MustMakeLog()
 	logger.Info(c, "request start", nil)
+	// 初始化cache服务
 	cacheService := c.MustMake(contract.CacheKey).(contract.CacheService)
+	// 设置key为foo
 	err := cacheService.Set(c, "foo", "bar", 1*time.Hour)
 	if err != nil {
 		c.AbortWithError(500, err)
 		return
 	}
+	// 获取key为foo
 	val, err := cacheService.Get(c, "foo")
 	if err != nil {
 		c.AbortWithError(500, err)
@@ -56,6 +60,7 @@ func (api *DemoApi) DemoCache(c *gin.Context) {
 	logger.Info(c, "cache get", map[string]interface{}{
 		"val": val,
 	})
+	// 删除key为foo
 	if err := cacheService.Del(c, "foo"); err != nil {
 		c.AbortWithError(500, err)
 		return
