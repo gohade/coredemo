@@ -3,7 +3,6 @@ package command
 import (
     "context"
     "fmt"
-    "github.com/erikdubbelboer/gspt"
     "github.com/gohade/hade/framework"
     "github.com/gohade/hade/framework/cobra"
     "github.com/gohade/hade/framework/contract"
@@ -157,7 +156,7 @@ var appStartCommand = &cobra.Command{
             defer cntxt.Release()
             // 子进程执行真正的app启动操作
             fmt.Println("deamon started")
-            gspt.SetProcTitle("hade app")
+            //gspt.SetProcTitle("hade app")
             if err := startAppServe(server, container); err != nil {
                 fmt.Println(err)
             }
@@ -171,7 +170,7 @@ var appStartCommand = &cobra.Command{
         if err != nil {
             return err
         }
-        gspt.SetProcTitle("hade app")
+        //gspt.SetProcTitle("hade app")
 
         fmt.Println("app serve url:", appAddress)
         if err := startAppServe(server, container); err != nil {
@@ -191,6 +190,12 @@ var appRestartCommand = &cobra.Command{
 
         // GetPid
         serverPidFile := filepath.Join(appService.RuntimeFolder(), "app.pid")
+
+        if !util.Exists(serverPidFile) {
+            appDaemon = true
+            // 直接daemon方式启动apps
+            return appStartCommand.RunE(c, args)
+        }
 
         content, err := ioutil.ReadFile(serverPidFile)
         if err != nil {

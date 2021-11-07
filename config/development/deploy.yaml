@@ -1,11 +1,19 @@
-host: 127.0.0.1
-user: yejianfeng
-password: 123abc 
-rsa_key: 
-timeout: 1000
-remote_path: "/home/yejianfeng/"
-post_shell: 
-  - "./hade serve restart"
-  - "pwd"
-goos: linux
-goarch: amd64
+connections:
+    - ssh.web-01
+
+remote_folder: "/home/yejianfeng/coredemo/"
+
+frontend:
+    pre_action:
+        - "pwd"
+    post_action:
+        - "pwd"
+
+backend:
+    goos: linux
+    goarch: amd64
+    pre_action:
+        - "pwd"
+    post_action:
+        - "chmod 777 /home/yejianfeng/coredemo/hade"
+        - "/home/yejianfeng/coredemo/hade app restart"
