@@ -1,19 +1,19 @@
-connections:
+connections: # 要自动化部署的连接
     - ssh.web-01
 
-remote_folder: "/home/yejianfeng/coredemo/"
+remote_folder: "/home/yejianfeng/coredemo/"  # 远端的部署文件夹
 
-frontend:
-    pre_action:
+frontend: # 前端部署配置
+    pre_action: # 部署前置命令
         - "pwd"
-    post_action:
+    post_action: # 部署后置命令
         - "pwd"
 
-backend:
-    goos: linux
-    goarch: amd64
-    pre_action:
-        - "pwd"
-    post_action:
+backend: # 后端部署配置
+    goos: linux # 部署目标操作系统
+    goarch: amd64 # 部署目标cpu架构
+    pre_action: # 部署前置命令
+        - "rm /home/yejianfeng/coredemo/hade"
+    post_action: # 部署后置命令
         - "chmod 777 /home/yejianfeng/coredemo/hade"
         - "/home/yejianfeng/coredemo/hade app restart"

@@ -1,4 +1,4 @@
-timeout: 1s
+timeout: 3s
 network: tcp
 web-01:
     host: 118.190.3.55 # ip地址

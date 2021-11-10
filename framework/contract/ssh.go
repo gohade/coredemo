@@ -11,9 +11,9 @@ const SSHKey = "hade:ssh"
 // SSHOption 代表初始化的时候的选项
 type SSHOption func(container framework.Container, config *SSHConfig) error
 
-// SSHService 表示一个redis服务
+// SSHService 表示一个ssh服务
 type SSHService interface {
-	// GetClient 获取redis连接实例
+	// GetClient 获取ssh连接实例
 	GetClient(option ...SSHOption) (*ssh.Client, error)
 }
 
