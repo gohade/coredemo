@@ -2,6 +2,7 @@ package command
 
 import (
 	"fmt"
+	"github.com/erikdubbelboer/gspt"
 	"github.com/sevlyar/go-daemon"
 	"io/ioutil"
 	"os"
@@ -13,8 +14,6 @@ import (
 	"github.com/gohade/hade/framework/cobra"
 	"github.com/gohade/hade/framework/contract"
 	"github.com/gohade/hade/framework/util"
-
-	"github.com/erikdubbelboer/gspt"
 )
 
 var cronDaemon = false
