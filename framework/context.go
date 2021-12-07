@@ -47,7 +47,7 @@ func (ctx *Context) GetResponse() http.ResponseWriter {
 	return ctx.responseWriter
 }
 
-func (ctx *Context) SetHasTimeout() {
+func (ctx *Context) SetTimeout() {
 	ctx.hasTimeout = true
 }
 

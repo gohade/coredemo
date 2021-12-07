@@ -40,7 +40,7 @@ func FooControllerHandler(c *framework.Context) error {
 		c.WriterMux().Lock()
 		defer c.WriterMux().Unlock()
 		c.Json(500, "time out")
-		c.SetHasTimeout()
+		c.SetTimeout()
 	}
 	return nil
 }
