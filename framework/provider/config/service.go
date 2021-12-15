@@ -287,5 +287,13 @@ func (conf *HadeConfig) GetStringMapStringSlice(key string) map[string][]string 
 
 // Load a config to a struct, val should be an pointer
 func (conf *HadeConfig) Load(key string, val interface{}) error {
-	return mapstructure.Decode(conf.find(key), val)
+	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
+		TagName: "yaml",
+		Result:  val,
+	})
+	if err != nil {
+		return err
+	}
+
+	return decoder.Decode(conf.find(key))
 }
