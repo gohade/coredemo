@@ -53,7 +53,7 @@ var swaggerGenCommand = &cobra.Command{
 			// 是否要解析标准库的包
 			ParseInternal: false,
 			// 是否要查找markdown文件，这个markdown文件能用来为tag增加说明格式
-			MarkdownFilesDir: "",
+			MarkdownFilesDir: httpFolder,
 			// 是否应该在docs.go中生成时间戳
 			GeneratedTime: false,
 		}

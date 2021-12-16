@@ -1,7 +1,7 @@
 // Package http API.
 // @title hade
 // @version 1.1
-// @description hade测试
+// @description.markdown api.md
 // @termsOfService https://github.com/swaggo/swag
 
 // @contact.name yejianfeng1
@@ -24,5 +24,5 @@
 package http
 
 import (
-    _ "github.com/gohade/hade/app/http/swagger"
+	_ "github.com/gohade/hade/app/http/swagger"
 )

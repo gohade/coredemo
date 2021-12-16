@@ -33,7 +33,6 @@ var doc = `{
     "paths": {
         "/demo/demo": {
             "get": {
-                "description": "获取所有用户",
                 "produces": [
                     "application/json"
                 ],
@@ -125,7 +124,7 @@ var SwaggerInfo = swaggerInfo{
 	BasePath:    "/",
 	Schemes:     []string{},
 	Title:       "hade",
-	Description: "hade测试",
+	Description: "这个模块负责显示hade的接口\n",
 }
 
 type s struct{}
