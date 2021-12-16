@@ -63,7 +63,7 @@ type IRequest interface {
 	ClientIp() string
 
 	// header
-	Headers() map[string]string
+	Headers() map[string][]string
 	Header(key string) (string, bool)
 
 	// cookie
