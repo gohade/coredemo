@@ -35,12 +35,12 @@ func Timeout(d time.Duration) gin.HandlerFunc {
 		// 执行业务逻辑后操作
 		select {
 		case p := <-panicChan:
-			c.ISetStatus(500).IJson("time out")
+			c.ISetStatus(500).IJson("panic")
 			log.Println(p)
 		case <-finish:
 			fmt.Println("finish")
 		case <-durationCtx.Done():
-			c.ISetStatus(500).IJson("time out")
+			c.ISetStatus(502).IJson("time out")
 		}
 	}
 }
